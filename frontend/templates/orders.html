@@ -39,7 +39,7 @@
                         authLink.onclick = async (e) => {
                             e.preventDefault();
                             document.cookie = "access_token=; Max-Age=0; path=/";
-                            window.location.reload();
+                            window.location.href = "/";
                         };
                     }
                 } catch (e) { console.error(e); }

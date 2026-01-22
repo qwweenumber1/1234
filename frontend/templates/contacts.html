@@ -202,8 +202,9 @@
                     authLink.href = "#";
                     authLink.onclick = async (e) => {
                         e.preventDefault();
+                        await fetch("/logout", { method: "POST" });
                         document.cookie = "access_token=; Max-Age=0; path=/";
-                        window.location.reload();
+                        window.location.href = "/";
                     };
                 }
             } catch (e) { console.error(e); }

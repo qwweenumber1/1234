@@ -116,7 +116,7 @@ async def handle_contacts(request: Request):
     # Forward to notification service
     # The notification service will send an email to the admin (you)
     async with httpx.AsyncClient() as client:
-        await client.post(SERVICES["notification"] + "/send-contact-email", data=form)
+        await client.post(SERVICES["notification"] + "/send-contact-email", data=form, timeout=20.0)
     return JSONResponse({"status": "sent"})
 
 @app.get("/verify/{token}")

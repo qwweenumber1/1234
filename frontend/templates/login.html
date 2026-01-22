@@ -29,10 +29,18 @@
         <nav class="menu-right">
             <a href="/contacts">Зв'язок</a>
             <a href="/">Iнформацiя</a>
-            <a href="/">Замовлення</a>
-            <a href="register.html">Реєстрація</a> <!-- Changed to Register -->
-
+            <a href="#" onclick="handleOrdersClick()">Замовлення</a>
+            <a href="/register_page">Реєстрація</a>
         </nav>
+        <script>
+            async function handleOrdersClick() {
+                try {
+                    const res = await fetch("/me", { credentials: "include" });
+                    if (res.ok) window.location.href = "/orders_page";
+                    else window.location.href = "/login_page";
+                } catch { window.location.href = "/login_page"; }
+            }
+        </script>
     </header>
 
     <main class="auth-page">

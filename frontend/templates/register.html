@@ -30,11 +30,19 @@
 
         <nav class="menu-right">
             <a href="/contacts">Зв'язок</a>
-            <a href="/">Iнформацiя</a> <!-- ссылки-->
-            <a href="/">Замовлення</a>
-            <a href="/">Вхід</a>
-
+            <a href="/">Iнформацiя</a>
+            <a href="#" onclick="handleOrdersClick()">Замовлення</a>
+            <a href="/login_page">Вхід</a>
         </nav>
+        <script>
+            async function handleOrdersClick() {
+                try {
+                    const res = await fetch("/me", { credentials: "include" });
+                    if (res.ok) window.location.href = "/orders_page";
+                    else window.location.href = "/login_page";
+                } catch { window.location.href = "/login_page"; }
+            }
+        </script>
     </header>
 
     <main class="auth-page">
@@ -49,7 +57,7 @@
 
             <div class="auth-footer-text">
                 Вже маєте акаунт?
-                <a href="login.html">Увійти</a>
+                <a href="/login_page">Увійти</a>
             </div>
         </div>
     </main>

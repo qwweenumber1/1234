@@ -39,7 +39,7 @@
                         authLink.onclick = async (e) => {
                             e.preventDefault();
                             document.cookie = "access_token=; Max-Age=0; path=/";
-                            window.location.href = "/login_page"; // Redirect to login on logout from admin
+                            window.location.href = "/"; // Redirect to home on logout
                         };
                     }
                 } catch (e) { console.error(e); }
