@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/css/index.css?v=6">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap&subset=cyrillic"
+        rel="stylesheet">
+
+
+    <title>Smart 3D</title>
+    <link rel="icon" href="/static/favicon.ico">
+</head>
+
+<body style="margin: 0;">
+
+
+    <header class="top-menu">
+        <div class="menu-left">
+            <a href="/" class="menu-logo">Smart3D</a>
+        </div>
+
+        <nav class="menu-right">
+            <a href="/">Послуги</a>
+            <a href="/">Iнформацiя</a>
+            <a href="#" onclick="handleOrdersClick()">Замовлення</a>
+            <a href="/login_page" id="authLink">Вхід</a>
+        </nav>
+        <script>
+            async function handleAuth() {
+                try {
+                    const res = await fetch("/me", { credentials: "include" });
+                    const authLink = document.getElementById("authLink");
+                    if (res.ok) {
+                        authLink.textContent = "Вихід";
+                        authLink.href = "#";
+                        authLink.onclick = async (e) => {
+                            e.preventDefault();
+                            await fetch("/logout", { method: "POST" }); // Assuming logout endpoint exists or we handle it
+                            document.cookie = "access_token=; Max-Age=0; path=/";
+                            window.location.reload();
+                        };
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            async function handleOrdersClick() {
+                try {
+                    const res = await fetch("/me", { credentials: "include" });
+                    if (res.ok) window.location.href = "/orders_page";
+                    else window.location.href = "/login_page";
+                } catch { window.location.href = "/login_page"; }
+            }
+            handleAuth();
+        </script>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <div class="hero-title">
+                3D-друк на замовлення в Україні - FDM, SLA, кольорові моделі будь-якої складності
+            </div>
+            <div class="hero-subtitle">
+                Виготовляємо прототипи, деталi, макети та сувенiри з точнiстью до 0.01 мм. Iндивiдуальний пiдхiд,
+                оперативнiсть i якiсть.
+            </div>
+            <a href="#" class="hero-button">Нашi роботи</a>
+        </div>
+    </div>
+
+    <div class="big-text">
+        Як ми створюємо деталі
+    </div>
+    <div class="section-description">
+        Три етапи від зламаної деталі до готового виробу
+    </div>
+
+    <div class="works-grid">
+        <div class="work-card">
+            <img src="/static/images/part1.jpg" alt="Робота 1">
+            <div class="work-text">Етап 1: Аналіз оригіналу</div>
+            <div class="work-subtext">Детально вивчаємо зламану деталь, робимо заміри та аналізуємо причини поломки
+            </div>
+        </div>
+
+        <div class="work-card">
+            <img src="/static/images/part2.jpg" alt="Робота 2">
+            <div class="work-text">Етап 2: 3D Моделювання</div>
+            <div class="work-subtext">Створюємо точну 3D модель у Fusion 360 з урахуванням усіх технічних вимог</div>
+        </div>
+
+        <div class="work-card">
+            <img src="/static/images/part3.jpg" alt="Робота 3">
+            <div class="work-text">Етап 3: Готовий виріб</div>
+            <div class="work-subtext">Виготовляємо деталь на 3D принтері, проводимо фінішну обробку та перевіряємо
+                якість</div>
+        </div>
+    </div>
+
+
+    <div class="info-block-title">
+        Корисна інформація
+    </div>
+
+    <div class="info-block-text">
+        Наш процес відновлення деталей дозволяє не лише відтворити зламаний елемент, але й покращити його
+        характеристики.<br>
+        Ми використовуємо сучасні матеріали, що часто перевершують оригінал за міцністю та довговічністю.<br>
+        Середній термін виготовлення складає 2-3 дні.<br>
+        Ми гарантуємо точність і якість кожної деталі.
+    </div>
+
+    <div class="big-text">
+        Нашi послуги
+    </div>
+    <div class="section-description">
+        Пропонуємо різні технології 3D друку для вирішення ваших завдань
+    </div>
+
+    <div class="works-grid">
+        <div class="work-card">
+            <img src="/static/images/print1.jpg" alt="FDM">
+            <div class="work-text">FDM друк</div>
+            <div class="work-subtext">Найпоширеніша технологія для створення міцних та недорогих деталей</div>
+            <div class="card-subtext">Мінімальна сума замовлення: <b>200</b> грн</div>
+            <div style="text-align:center;">
+                <a href="/" class="card-subtext">Детальнiше</a>
+            </div>
+        </div>
+
+        <div class="work-card">
+            <img src="/static/images/print2.jpg" alt="Color FDM">
+            <div class="work-text">Кольоровий FDM</div>
+            <div class="work-subtext">Друк з автоматичною зміною кольорів для створення різнокольорових моделей</div>
+            <div class="card-subtext">Мінімальна сума замовлення: <b>500</b> грн</div>
+            <div style="text-align:center;">
+                <a href="/" class="card-subtext">Детальнiше</a>
+            </div>
+        </div>
+
+        <div class="work-card">
+            <img src="/static/images/print3.jpg" alt="SLA">
+            <div class="work-text">SLA друк</div>
+            <div class="work-subtext">Високодеталізовані моделі з гладкою поверхнею</div>
+            <div class="card-subtext">Мінімальна сума замовлення: <b>500</b> грн</div>
+            <div style="text-align:center;">
+                <a href="/" class="card-subtext">Детальнiше</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="studio-info-title">
+        Про нашу студiю
+    </div>
+
+    <div class="onas">
+        Smart3D- це професійний 3D-друк на замовлення для бізнесу та творчих проєктів<br>
+        Ми працюємо з популярними технологіями FDM та SLA,<br>
+        що дозволяють створювати як функціональні деталі, так і високодеталізовані моделі.
+    </div>
+
+    <div class="onas">
+        Пропонуємо друк з PLA, PETG, ABS, фотополімерів та інших матеріалів. <br>
+        Виконуємо замовлення будь-якої складності від одиночних макетів до серійного виробництва. <br>
+        Доставка по всій Україні, індивідуальні консультації та прорахунок вартості — безкоштовно.
+    </div>
+
+    <div class="onas">
+        З нами працюють інженери, архітектори, дизайнери, стартапи, майстри хендмейду та всі, <br>
+        хто цінує якість 3D-друку. Надішліть нам модель і ми втілимо її у фізичну реальність!
+    </div>
+
+    <div class="features">
+        <div class="feature-item">
+            <div class="check-box">✓</div><span>Понад 7 років досвіду</span>
+        </div>
+        <div class="feature-item">
+            <div class="check-box">✓</div><span>30+ професійних принтерів</span>
+        </div>
+        <div class="feature-item">
+            <div class="check-box">✓</div><span>500+ задоволених клієнтів</span>
+        </div>
+        <div class="feature-item">
+            <div class="check-box">✓</div><span>Гарантія якості</span>
+        </div>
+    </div>
+
+    <div class="big-text" style="padding-top: 4%;">
+        Чому оберають нас
+    </div>
+
+    <div class="work-subtext" style="padding-top: 2%; font-size: clamp(18px, 4vw, 30px); color: black;">
+        Ми пропонуємо повний цикл послуг від проектування до постобробки готових виробів
+    </div>
+
+    <div class="features-grid">
+        <div class="icon-block">
+            <img src="/static/icons/clock.svg" alt="Часы" class="icon-img">
+            <div class="icon-text">Швидке виконання</div>
+            <div class="icon-subtext">Термінове виготовлення деталей</div>
+        </div>
+        <div class="icon-block">
+            <img src="/static/icons/dollar.svg" alt="Доллар" class="icon-img">
+            <div class="icon-text">Доступна ціна</div>
+            <div class="icon-subtext">Оптимальна вартість для всіх</div>
+        </div>
+        <div class="icon-block">
+            <img src="/static/icons/phone.svg" alt="Телефон" class="icon-img">
+            <div class="icon-text">Зв'язок 24/7</div>
+            <div class="icon-subtext">Консультації та підтримка</div>
+        </div>
+        <div class="icon-block">
+            <img src="/static/icons/medal.svg" alt="Медаль" class="icon-img">
+            <div class="icon-text">Висока якість</div>
+            <div class="icon-subtext">Гарантія на всі деталі</div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <div class="hero-content">
+            <div class="hero-title">
+                Почніть свій проект вже сьогодні!
+            </div>
+            <div class="hero-subtitle">
+                Отримайте знижку 10% на перше замовлення. Зв'яжіться з нами, щоб обговорити деталі.
+            </div>
+            <a href="#" class="hero-button" onclick="handleOrdersClick()">Замовити зараз</a>
+        </div>
+    </div>
+
+    <div class="big-text" style="padding-top: 6%; font-size: clamp(22px, 4vw, 50px);">
+        Поширені запитання
+    </div>
+
+    <div class="big-text" style="text-align: left; padding-left: 4%;">
+        Який матеріал кращий для 3D друку?
+    </div>
+    <div class="onas">
+        Вибір матеріалу залежить від ваших потреб. PLA підходить для прототипів та декоративних виробів завдяки <br>
+        екологічності та простоті друку. ABS міцніший та термостійкіший, ідеальний для функціональних деталей. <br>
+        PETG поєднує переваги обох матеріалів
+    </div>
+
+    <div class="big-text" style="text-align: left; padding-left: 4%;">
+        Скільки часу займає друк?
+    </div>
+    <div class="onas">
+        Час друку залежить від кількох факторів: <br>
+        - Розмір та складність моделі <br>
+        - Обраний матеріал та налаштування друку <br>
+        - Необхідна якість поверхні <br>
+        Середній час друку: від 2 годин для невеликих виробів до кількох днів для великих складних моделей.
+    </div>
+
+    <div class="big-text" style="text-align: left; padding-left: 4%;">
+        Чи можна замовити терміновий друк?
+    </div>
+    <div class="onas">
+        Так, ми пропонуємо послуги термінового друку з пріоритетом у черзі. Терміни виконання:
+    </div>
+
+    <div class="term-grid">
+        <div class="work-subtext-term" style="color: blue;">
+            <b>Стандарт</b>
+            <div class="work-subtext-term" style="color: #2f2f2f; font-size: clamp(18px, 2.5vw, 26px);">3-5 робочих днів
+            </div>
+        </div>
+        <div class="work-subtext-term" style="color: green;">
+            <b>Експрес</b>
+            <div class="work-subtext-term" style="color: #2f2f2f; font-size: clamp(18px, 2.5vw, 26px);">1-2 робочі дні
+            </div>
+        </div>
+        <div class="work-subtext-term" style="color: red;">
+            <b>Терміново</b>
+            <div class="work-subtext-term" style="color: #2f2f2f; font-size: clamp(18px, 2.5vw, 26px);">до 24 годин
+            </div>
+        </div>
+    </div>
+
+    <div class="work-subtext"
+        style="padding-top: 4%; padding-bottom: 4%; font-size: clamp(18px, 4vw, 24px); color: #2f2f2f;">
+        Ми пропонуємо повний цикл послуг від проектування до постобробки готових виробів
+    </div>
+
+    <div class="big-text" style="text-align: left; padding-left: 4%;">
+        Які формати файлiв ви пiдтримуетєте?
+    </div>
+    <div class="onas">
+        Ми працюємо з усіма популярними форматами 3D-моделей:
+    </div>
+
+    <div class="print-grid">
+        <div class="onas">STL</div>
+        <div class="onas">OBJ</div>
+        <div class="onas">STEP</div>
+        <div class="onas">IGE</div>
+        <div class="onas">S3MF</div>
+        <div class="onas">FBX</div>
+    </div>
+    <div class="onas" style="padding-bottom: 4%;">
+        Для кращого результату рекомендуемо надавати моделі у форматi STL або S3MF.
+    </div>
+
+    <div class="big-text" style="text-align: left; padding-left: 4%;">
+        Які кольори доступні для друку?
+    </div>
+    <div class="onas">
+        Наша палiтра включає поднад 50 кольорів рiзних матеріалiв:
+    </div>
+
+    <div class="colors-grid">
+        <div class="color-card" style="background-color: #e74c3c;"></div>
+        <div class="color-card" style="background-color: #3498db;"></div>
+        <div class="color-card" style="background-color: #2ecc71;"></div>
+        <div class="color-card" style="background-color: #f1c40f;"></div>
+        <div class="color-card" style="background-color: #9b59b6;"></div>
+    </div>
+
+    <div class="colors-grid">
+        <div class="color-card" style="background-color: #f828a8;"></div>
+        <div class="color-card" style="background-color: #000000;"></div>
+        <div class="color-card" style="background-color: #535353;"></div>
+        <div class="color-card" style="background-color: #ffffff;"></div>
+        <div class="color-card" style="background-color: #74e9e9;"></div>
+    </div>
+
+    <div class="onas" style="padding-bottom: 4%;">
+        Також доступні спеціальні матеріали: металізовані, флуоресцентні, з ефектом дерева чи каменю.
+    </div>
+
+    <div class="big-text" style="text-align: left; padding-left: 4%;">
+        Чи є гарантія на вибори?
+    </div>
+
+    <div class="feature-item" style="padding-left: 4%; padding-top: 2%;">
+        <div class="check-box">✓</div>
+        <span>Ми надаємо гарантію на всі наші вироби: <br>
+            - 30 днів на всі вироби <br>
+            Гарантія покриває виробничі дефекти.</span>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <div class="hero-content">
+            <div class="hero-title">
+                Готові розпочати проект?
+            </div>
+            <div class="hero-subtitle">
+                Зв'яжіться з нами сьогодні, щоб обговорити ваші ідеї та отримати безкоштовну консультацію.
+            </div>
+            <a href="#" class="hero-button">Зв'язатися з нами</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-grid">
+
+            <!-- 1 -->
+            <div>
+                <div class="footer-title"><a href="/" style="color: inherit; text-decoration: none;">Smart3D</a></div>
+                <div class="footer-text">
+                    3D-Studio — команда професіоналів, відданих своїй справі.
+                    Наш пріоритет — висока якість і максимальний результат
+                    у кожному проєкті. Пропонуємо доступний 3D-друк
+                    з швидкою доставкою по всій Україні.
+                </div>
+
+                <div class="footer-socials">
+                    <img src="/static/icons/facebook.svg" alt="Facebook">
+                    <img src="/static/icons/instagram.svg" alt="Instagram">
+                    <img src="/static/icons/youtube.svg" alt="YouTube">
+                </div>
+            </div>
+
+            <!-- 2 -->
+            <div>
+                <div class="footer-title">Інформація</div>
+                <div class="footer-text">
+                    3D друк SLA на замовлення — високоточний друк
+                    для складних моделей
+                    <br><br>
+                    3D друк FDM на замовлення — точні та міцні деталі
+                    за вашою 3D моделлю
+                    <br><br>
+                    Кольоровий 3D друк FDM — багатокольорові
+                    моделі на замовлення
+                </div>
+            </div>
+
+            <!-- 3 -->
+            <div>
+                <div class="footer-title">Зв’язатися з нами</div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/phone.svg" alt="">
+                    <span>+38 (067) 265 98 65</span>
+                </div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/phone.svg" alt="">
+                    <span>+38 (066) 200 47 90</span>
+                </div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/mail.svg" alt="">
+                    <span>info@smart3d.com.ua</span>
+                </div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/mail.svg" alt="">
+                    <span>smart-3D.printing@gmail.com</span>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+</body>
+
+</html>

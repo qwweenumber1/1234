@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реєстрація успішна - Smart 3D</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f6f8f6;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Roboto Slab', serif;
+        }
+
+        .success-card {
+            width: 100%;
+            max-width: 500px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 48px 40px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #a3d392;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 24px;
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2f2f2f;
+            margin-bottom: 16px;
+        }
+
+        .success-text {
+            font-size: 16px;
+            color: #6b6b6b;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .email-highlight {
+            color: #4b8f3f;
+            font-weight: 700;
+        }
+
+        .home-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background-color: #a3d392;
+            color: white;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .home-button:hover {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-card">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Реєстрація успішна!</div>
+        <div class="success-text">
+            Ми надіслали лист для підтвердження на вашу електронну адресу.<br>
+            Будь ласка, перевірте пошту та натисніть на посилання для активації вашого акаунту <span
+                class="email-highlight">Smart 3D</span>.
+        </div>
+        <a href="/" class="home-button">Повернутися на головну</a>
+    </div>
+</body>
+
+</html>

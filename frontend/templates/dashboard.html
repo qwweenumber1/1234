@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Личный кабинет</title>
+</head>
+<body>
+    <h1>Привет, {{ user.email }}!</h1>
+    <p>Роль: {{ user.role }}</p>
+
+    <h2>Сделать заказ</h2>
+    <form method="post" action="/orders/create">
+        <input type="hidden" name="user_id" value="{{ user.id }}">
+        <input type="text" name="item" placeholder="Название заказа" required>
+        <button type="submit">Сделать заказ</button>
+    </form>
+
+    <h2>Ваши заказы</h2>
+    <ul>
+    {% for order in orders %}
+        <li>{{ order.id }} - {{ order.item }} - {{ order.status }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
