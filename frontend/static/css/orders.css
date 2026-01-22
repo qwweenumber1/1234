@@ -96,6 +96,10 @@
         background: #28a745;
     }
 
+    .status-canceled {
+        background: #e74c3c;
+    }
+
     /* Modal Styles */
     .modal-overlay {
         display: none;

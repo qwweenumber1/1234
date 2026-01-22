@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 
 <head>
     <meta charset="UTF-8">
-    <title>Orders</title>
-    <link rel="stylesheet" href="/static/css/index.css?v=6">
-    <link rel="stylesheet" href="/static/css/orders.css?v=6">
+    <title>Замовлення - Smart 3D</title>
+    <link rel="stylesheet" href="/static/css/index.css?v=10">
+    <link rel="stylesheet" href="/static/css/orders.css?v=10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap&subset=cyrillic"
@@ -38,6 +38,7 @@
                         authLink.href = "#";
                         authLink.onclick = async (e) => {
                             e.preventDefault();
+                            await fetch("/logout", { method: "POST" });
                             document.cookie = "access_token=; Max-Age=0; path=/";
                             window.location.href = "/";
                         };
@@ -58,16 +59,16 @@
 
     <main class="orders-content" style="min-height: 60vh;">
         <div id="verificationMessage"></div>
-        <h1>Create Order</h1>
+        <h1>Створити замовлення</h1>
         <form id="orderForm" enctype="multipart/form-data">
-            <input type="text" name="description" placeholder="Description" required>
-            <input type="text" name="color" placeholder="Color (optional)">
-            <input type="text" name="size" placeholder="Size (optional)">
-            <label>Photo (optional): <input type="file" name="file" accept="image/*"></label>
-            <button type="submit">Create Order</button>
+            <input type="text" name="description" placeholder="Опис замовлення" required>
+            <input type="text" name="color" placeholder="Колір (необов'язково)">
+            <input type="text" name="size" placeholder="Розмір (необов'язково)">
+            <label>Фото (необов'язково): <input type="file" name="file" accept="image/*"></label>
+            <button type="submit">Створити замовлення</button>
         </form>
 
-        <h2>Your Orders</h2>
+        <h2>Ваші замовлення</h2>
         <ul id="ordersList"></ul>
     </main>
 
@@ -146,7 +147,168 @@
         </div>
     </footer>
 
-    <script src="/static/js/orders.js?v=5"></script>
+    <script>
+        const form = document.getElementById("orderForm");
+
+        // Check user role
+        async function checkRole() {
+            try {
+                const res = await fetch("/me", { credentials: "include" });
+                if (res.ok) {
+                    const user = await res.json();
+
+                    // Verification check
+                    const vMsg = document.getElementById("verificationMessage");
+                    if (vMsg && !user.is_verified) {
+                        vMsg.innerHTML = `
+                            <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px;">
+                                <strong>Email не підтверджено!</strong> Будь ласка, перевірте пошту (або розділ сповіщень) для підтвердження акаунту. 
+                                Ви не зможете створювати замовлення до підтвердження.
+                            </div>
+                        `;
+                        if (form) {
+                            const btn = form.querySelector("button[type='submit']");
+                            if (btn) {
+                                btn.disabled = true;
+                                btn.style.opacity = "0.5";
+                                btn.title = "Будь ласка, спочатку підтвердіть Email";
+                            }
+                        }
+                    }
+
+                    if (user.role === "admin") {
+                        const btn = document.createElement("button");
+                        btn.textContent = "Перейти до адмін-панелі";
+                        btn.style.cssText = "background: #343a40; margin-bottom: 20px; width: 100%; color: white;";
+                        btn.onclick = () => window.location.href = "/admin_page";
+                        document.querySelector(".orders-content").insertBefore(btn, document.querySelector(".orders-content").firstChild);
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+        checkRole();
+
+        if (form) {
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const res = await fetch("/create_order", { method: "POST", body: formData, credentials: "include" });
+                const data = await res.json();
+                if (res.ok) {
+                    form.reset();
+                    loadOrders();
+                }
+                else alert("Помилка: " + (data.detail || JSON.stringify(data)));
+            });
+        }
+
+        async function loadOrders() {
+            const res = await fetch("/orders", { credentials: "include" });
+            const data = await res.json();
+            const orders = data.orders || [];
+            const list = document.getElementById("ordersList");
+            if (!list) return;
+            list.innerHTML = "";
+            orders.forEach(o => {
+                const li = document.createElement("li");
+
+                let metaHtml = "";
+                if (o.color) metaHtml += `<span class="badge">Колір: ${o.color}</span>`;
+                if (o.size) metaHtml += `<span class="badge">Розмір: ${o.size}</span>`;
+
+                // Status Badge
+                const statusMap = {
+                    "new": "Новий",
+                    "in progress": "В роботі",
+                    "done": "Готово",
+                    "canceled": "Скасовано"
+                };
+                let statusColor = "status-new";
+                if (o.status === "in progress") statusColor = "status-inprogress";
+                if (o.status === "done") statusColor = "status-done";
+                if (o.status === "canceled") statusColor = "status-canceled";
+
+                let statusTitle = statusMap[o.status] || o.status;
+
+                metaHtml += `<span class="status-badge ${statusColor}">${statusTitle}</span>`;
+
+                // Better date formatting
+                let dateStr = "Невідома дата";
+                if (o.created_at) {
+                    const d = new Date(o.created_at);
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    const hours = String(d.getHours()).padStart(2, '0');
+                    const mins = String(d.getMinutes()).padStart(2, '0');
+                    dateStr = `${day}.${month}.${year} ${hours}:${mins}`;
+                }
+
+                li.innerHTML = `
+                    <div class="order-info">
+                        <div><strong style="font-size: 1.2em; color: #4b8f3f;">Замовлення #${o.id}</strong></div>
+                        <div style="font-size: 1.1em; margin: 5px 0; font-weight: 500;">${o.description}</div>
+                        <div class="meta">
+                            ${metaHtml}
+                            <span>${dateStr}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        ${o.file_path ? `<a href="/${o.file_path}" target="_blank" style="color: #4b8f3f; text-decoration: none; font-weight: bold;">Файл</a>` : ''}
+                        <button onclick="deleteOrder(${o.id})" style="background: #dc3545; color: white; border: none; padding: 8px 15px; font-size: 0.9em; cursor: pointer; border-radius: 8px; font-weight: bold;">Видалити</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        let orderIdToDelete = null;
+        const modal = document.getElementById("deleteModal");
+        const confirmBtn = document.getElementById("confirmBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+
+        if (cancelBtn) cancelBtn.onclick = () => closeModal();
+        if (confirmBtn) {
+            confirmBtn.onclick = async () => {
+                if (orderIdToDelete) {
+                    await executeDelete(orderIdToDelete);
+                }
+                closeModal();
+            };
+        }
+
+        if (modal) {
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+        }
+
+        function openModal(id) {
+            orderIdToDelete = id;
+            if (modal) modal.classList.add("active");
+        }
+
+        function closeModal() {
+            orderIdToDelete = null;
+            if (modal) modal.classList.remove("active");
+        }
+
+        async function deleteOrder(id) {
+            openModal(id);
+        }
+
+        async function executeDelete(id) {
+            const res = await fetch(`/orders/${id}`, { method: "DELETE", credentials: "include" });
+            if (res.ok) {
+                loadOrders();
+            } else {
+                const data = await res.json();
+                alert("Помилка видалення: " + (data.detail || JSON.stringify(data)));
+            }
+        }
+
+        loadOrders();
+    </script>
 </body>
 
 </html>

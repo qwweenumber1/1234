@@ -125,14 +125,44 @@
 <body style="margin: 0; background-color: #f6f8f6;">
     <header class="top-menu">
         <div class="menu-left">
-            <a href="/" class="menu-logo">Smart3D</a>
+            <a href="/" class="menu-logo" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+                Smart3D
+            </a>
         </div>
+
         <nav class="menu-right">
             <a href="/contacts">Зв'язок</a>
-            <a href="/">Інформація</a>
+            <a href="/">Iнформацiя</a>
             <a href="#" onclick="handleOrdersClick()">Замовлення</a>
             <a href="/login_page" id="authLink">Вхід</a>
         </nav>
+        <script>
+            async function handleAuth() {
+                try {
+                    const res = await fetch("/me", { credentials: "include" });
+                    const authLink = document.getElementById("authLink");
+                    if (res.ok) {
+                        authLink.textContent = "Вихід";
+                        authLink.href = "#";
+                        authLink.onclick = async (e) => {
+                            e.preventDefault();
+                            await fetch("/logout", { method: "POST" });
+                            document.cookie = "access_token=; Max-Age=0; path=/";
+                            window.location.href = "/";
+                        };
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            async function handleOrdersClick() {
+                try {
+                    const res = await fetch("/me", { credentials: "include" });
+                    if (res.ok) window.location.href = "/orders_page";
+                    else window.location.href = "/login_page";
+                } catch { window.location.href = "/login_page"; }
+            }
+            handleAuth();
+        </script>
     </header>
 
     <main class="contact-container">
@@ -145,10 +175,16 @@
                 <span>📍 Київ, Україна</span>
             </div>
             <div class="contact-item">
-                <span>✉️ 3dsmartservices@gmail.com</span>
+                <span>✉️ info@smart3d.com.ua</span>
             </div>
             <div class="contact-item">
-                <span>📞 +380 XX XXX XX XX</span>
+                <span>✉️ smart-3D.printing@gmail.com</span>
+            </div>
+            <div class="contact-item">
+                <span>📞 +38 (067) 265 98 65</span>
+            </div>
+            <div class="contact-item">
+                <span>📞 +38 (066) 200 47 90</span>
             </div>
 
             <p style="margin-top: 20px;">Ми працюємо: Пн-Пт 9:00 - 18:00</p>
@@ -166,58 +202,70 @@
         </div>
     </main>
 
-    <footer class="site-footer">
+    <footer class="footer">
         <div class="footer-grid">
+
+            <!-- 1 -->
             <div>
-                <div class="footer-title">Smart3D</div>
-                <div class="footer-text">Ми робимо 3D-друк доступним для кожного. Якість, швидкість та індивідуальний
-                    підхід.</div>
-            </div>
-            <div>
-                <div class="footer-title">Навігація</div>
+                <div class="footer-title"><a href="/" style="color: inherit; text-decoration: none;">Smart3D</a></div>
                 <div class="footer-text">
-                    <a href="/" style="color: #cfd9d2; text-decoration: none;">Головна</a><br>
-                    <a href="/contacts" style="color: #cfd9d2; text-decoration: none;">Зв'язок</a><br>
-                    <a href="#" onclick="handleOrdersClick()"
-                        style="color: #cfd9d2; text-decoration: none;">Замовлення</a>
+                    3D-Studio — команда професіоналів, відданих своїй справі.
+                    Наш пріоритет — висока якість і максимальний результат
+                    у кожному проєкті. Пропонуємо доступний 3D-друк
+                    з швидкою доставкою по всій Україні.
                 </div>
-            </div>
-            <div>
-                <div class="footer-title">Контакти</div>
-                <div class="footer-contact">✉️ 3dsmartservices@gmail.com</div>
+
                 <div class="footer-socials">
-                    <!-- Social icons placeholders -->
+                    <img src="/static/icons/facebook.svg" alt="Facebook">
+                    <img src="/static/icons/instagram.svg" alt="Instagram">
+                    <img src="/static/icons/youtube.svg" alt="YouTube">
                 </div>
             </div>
+
+            <!-- 2 -->
+            <div>
+                <div class="footer-title">Інформація</div>
+                <div class="footer-text">
+                    3D друк SLA на замовлення — високоточний друк
+                    для складних моделей
+                    <br><br>
+                    3D друк FDM на замовлення — точні та міцні деталі
+                    за вашою 3D моделлю
+                    <br><br>
+                    Кольоровий 3D друк FDM — багатокольорові
+                    моделі на замовлення
+                </div>
+            </div>
+
+            <!-- 3 -->
+            <div>
+                <div class="footer-title">Зв’язатися з нами</div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/phone.svg" alt="">
+                    <span>+38 (067) 265 98 65</span>
+                </div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/phone.svg" alt="">
+                    <span>+38 (066) 200 47 90</span>
+                </div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/mail.svg" alt="">
+                    <span>info@smart3d.com.ua</span>
+                </div>
+
+                <div class="footer-contact">
+                    <img src="/static/icons/mail.svg" alt="">
+                    <span>smart-3D.printing@gmail.com</span>
+                </div>
+            </div>
+
         </div>
     </footer>
 
     <script>
-        async function handleAuth() {
-            try {
-                const res = await fetch("/me", { credentials: "include" });
-                const authLink = document.getElementById("authLink");
-                if (res.ok) {
-                    authLink.textContent = "Вихід";
-                    authLink.href = "#";
-                    authLink.onclick = async (e) => {
-                        e.preventDefault();
-                        await fetch("/logout", { method: "POST" });
-                        document.cookie = "access_token=; Max-Age=0; path=/";
-                        window.location.href = "/";
-                    };
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function handleOrdersClick() {
-            try {
-                const res = await fetch("/me", { credentials: "include" });
-                if (res.ok) window.location.href = "/orders_page";
-                else window.location.href = "/login_page";
-            } catch { window.location.href = "/login_page"; }
-        }
-
         const contactForm = document.getElementById('contactForm');
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -255,8 +303,6 @@
                 submitBtn.textContent = 'Надіслати';
             }
         });
-
-        handleAuth();
     </script>
 </body>
 

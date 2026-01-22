@@ -169,6 +169,67 @@ def send_contact_email(background_tasks: BackgroundTasks, name: str = Form(...),
     background_tasks.add_task(do_send)
     return {"status": "processing"}
 
+@app.post("/send-status-update")
+def send_status_update(background_tasks: BackgroundTasks, email: str = Form(...), order_id: int = Form(...), new_status: str = Form(...)):
+    status_colors = {
+        "new": "#3498db",
+        "in progress": "#f39c12",
+        "done": "#2ecc71",
+        "canceled": "#e74c3c"
+    }
+    status_ukr = {
+        "new": "Новий",
+        "in progress": "В роботі",
+        "done": "Готово",
+        "canceled": "Скасовано"
+    }
+    
+    color = status_colors.get(new_status, "#4b8f3f")
+    status_text = status_ukr.get(new_status, new_status)
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; background-color: #f4f7f4; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 5px solid {color};">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #4b8f3f; margin: 0; font-size: 24px;">Smart 3D</h1>
+                <p style="color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Оновлення статусу замовлення</p>
+            </div>
+            
+            <div style="background: #f9fdf9; border-radius: 12px; padding: 25px; margin-bottom: 30px; text-align: center;">
+                <p style="margin: 0; font-size: 16px; color: #666;">Замовлення <strong>#{order_id}</strong> тепер має статус:</p>
+                <div style="display: inline-block; margin-top: 15px; padding: 10px 25px; background: {color}; color: white; border-radius: 50px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 10px {color}44;">
+                    {status_text}
+                </div>
+            </div>
+            
+            <p>Вітаємо! Ваше замовлення перейшло на новий етап. Ми робимо все можливе, щоб ви отримали якісний результат якнайшвидше.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a href="http://127.0.0.1:8000/orders_page" style="background-color: #a3d392; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; transition: background 0.3s;">Переглянути замовлення</a>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="font-size: 13px; color: #999; text-align: center;">Це автоматичне сповіщення. Будь ласка, не відповідайте на цей лист.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="font-size: 12px; color: #ccc;">© 2026 Smart 3D — Професійний 3D-друк</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    def do_send():
+        success = send_html_email(email, f"Оновлення статусу замовлення #{order_id} - Smart 3D", html_body)
+        if success:
+            print(f"Status update email for order #{order_id} sent to {email}")
+        else:
+            print(f"Failed to send status update email to {email}")
+
+    background_tasks.add_task(do_send)
+    return {"status": "processing"}
+
 # Получить уведомления пользователя
 @app.get("/notifications/{user_email}")
 def get_notifications(user_email: str, db: Session = Depends(get_db)):

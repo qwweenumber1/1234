@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, Form, HTTPException
+from fastapi import FastAPI, Depends, Form, HTTPException, BackgroundTasks
+import httpx
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from services.orders.database import SessionLocal, Base, engine
@@ -36,8 +37,25 @@ def admin_panel(email: str = "", db: Session = Depends(get_db)):
     }
 
 @app.post("/update_status/{order_id}")
-def update_status(order_id: int, status: str = Form(...), db: Session = Depends(get_db)):
-    update_order_status(db, order_id, status)
+async def update_status(background_tasks: BackgroundTasks, order_id: int, status: str = Form(...), db: Session = Depends(get_db)):
+    order = update_order_status(db, order_id, status)
+    if order and order.user_email:
+        # Trigger notification in background
+        NOTIFICATION_URL = "http://127.0.0.1:8004/send-status-update"
+        
+        async def notify():
+            try:
+                async with httpx.AsyncClient() as client:
+                    await client.post(NOTIFICATION_URL, data={
+                        "email": order.user_email,
+                        "order_id": order_id,
+                        "new_status": status
+                    })
+            except Exception as e:
+                print(f"Error triggering status notification: {e}")
+        
+        background_tasks.add_task(notify)
+        
     return {"message": "Status updated"}
 
 @app.delete("/delete_order/{order_id}")
