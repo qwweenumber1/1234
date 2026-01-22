@@ -139,6 +139,36 @@ def send_verification(background_tasks: BackgroundTasks, email: str = Form(...),
     background_tasks.add_task(do_send)
     return {"status": "processing"}
 
+@app.post("/send-contact-email")
+def send_contact_email(background_tasks: BackgroundTasks, name: str = Form(...), email: str = Form(...), subject: str = Form(...), message: str = Form(...)):
+    admin_email = SMTP_USER 
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; border: 1px solid #ddd;">
+            <h2 style="color: #a3d392; border-bottom: 2px solid #a3d392; padding-bottom: 10px;">Нове повідомлення з сайту Smart 3D</h2>
+            <p><strong>Від:</strong> {name} ({email})</p>
+            <p><strong>Тема:</strong> {subject}</p>
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                <p><strong>Повідомлення:</strong></p>
+                <p>{message}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    def do_send():
+        success = send_html_email(admin_email, f"Запит від клієнта: {subject}", html_body)
+        if success:
+            print(f"Contact email from {email} sent to admin")
+        else:
+            print(f"Failed to send contact email from {email}")
+
+    background_tasks.add_task(do_send)
+    return {"status": "processing"}
+
 # Получить уведомления пользователя
 @app.get("/notifications/{user_email}")
 def get_notifications(user_email: str, db: Session = Depends(get_db)):

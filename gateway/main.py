@@ -106,6 +106,19 @@ async def register(request: Request):
 def registration_success():
     return get_html("registration_success.html")
 
+@app.get("/contacts", response_class=HTMLResponse)
+def contacts_page():
+    return get_html("contacts.html")
+
+@app.post("/contacts")
+async def handle_contacts(request: Request):
+    form = await request.form()
+    # Forward to notification service
+    # The notification service will send an email to the admin (you)
+    async with httpx.AsyncClient() as client:
+        await client.post(SERVICES["notification"] + "/send-contact-email", data=form)
+    return JSONResponse({"status": "sent"})
+
 @app.get("/verify/{token}")
 async def verify_email(token: str):
     async with httpx.AsyncClient() as client:
