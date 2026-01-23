@@ -1,0 +1,71 @@
+services:
+  # API Gateway
+  - type: web
+    name: smart3d-gateway
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn gateway.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: AUTH_SERVICE_URL
+        fromService:
+          name: smart3d-auth
+          type: web
+          property: host
+      - key: ORDERS_SERVICE_URL
+        fromService:
+          name: smart3d-orders
+          type: web
+          property: host
+      - key: NOTIFICATION_SERVICE_URL
+        fromService:
+          name: smart3d-notification
+          type: web
+          property: host
+      - key: ADMIN_SERVICE_URL
+        fromService:
+          name: smart3d-admin
+          type: web
+          property: host
+      - key: AI_SERVICE_URL
+        fromService:
+          name: smart3d-ai
+          type: web
+          property: host
+
+  # Auth Service
+  - type: web
+    name: smart3d-auth
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.auth.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+
+  # Orders Service
+  - type: web
+    name: smart3d-orders
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.orders.main:app --host 0.0.0.0 --port $PORT
+
+  # Notification Service
+  - type: web
+    name: smart3d-notification
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.notification.main:app --host 0.0.0.0 --port $PORT
+
+  # Admin Service
+  - type: web
+    name: smart3d-admin
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.admin.main:app --host 0.0.0.0 --port $PORT
+
+  # AI Service
+  - type: web
+    name: smart3d-ai
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.ai.main:app --host 0.0.0.0 --port $PORT
