@@ -6,7 +6,7 @@ from .models import Base, Payment
 from random import choice
 
 # --- Настройка базы данных ---
-DATABASE_URL = "sqlite:///./payments.db"
+DATABASE_URL = "sqlite:///c:/ggg/data/payments.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 

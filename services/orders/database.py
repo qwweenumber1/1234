@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "sqlite:///orders.db"
+DATABASE_URL = "sqlite:///c:/ggg/data/orders.db"
 
 engine = create_engine(
     DATABASE_URL,
@@ -28,7 +28,7 @@ def check_and_migrate():
     # Simple migration logic for SQLite
     import sqlite3
     try:
-        conn = sqlite3.connect("orders.db")
+        conn = sqlite3.connect("c:/ggg/data/orders.db")
         cursor = conn.cursor()
         
         # Check/Add color

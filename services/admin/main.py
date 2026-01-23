@@ -45,11 +45,15 @@ async def update_status(background_tasks: BackgroundTasks, order_id: int, status
         
         async def notify():
             try:
+                # Reconstruct base_url if possible, otherwise use a safe default
+                # Since admin is usually accessed via the gateway on port 8000
+                base_url = "http://127.0.0.1:8000" 
                 async with httpx.AsyncClient() as client:
                     await client.post(NOTIFICATION_URL, data={
                         "email": order.user_email,
                         "order_id": order_id,
-                        "new_status": status
+                        "new_status": status,
+                        "base_url": base_url
                     })
             except Exception as e:
                 print(f"Error triggering status notification: {e}")

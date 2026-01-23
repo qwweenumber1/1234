@@ -93,8 +93,8 @@ def notify(user_email: str = Form(...), message: str = Form(...), db: Session = 
     return {"status": "sent", "notification_id": notification.id}
 
 @app.post("/send-verification")
-def send_verification(background_tasks: BackgroundTasks, email: str = Form(...), token: str = Form(...), db: Session = Depends(get_db)):
-    link = f"http://127.0.0.1:8000/verify/{token}"
+def send_verification(background_tasks: BackgroundTasks, email: str = Form(...), token: str = Form(...), base_url: str = Form("http://127.0.0.1:8000"), db: Session = Depends(get_db)):
+    link = f"{base_url}/verify/{token}"
     
     html_body = f"""
     <html>
@@ -170,7 +170,7 @@ def send_contact_email(background_tasks: BackgroundTasks, name: str = Form(...),
     return {"status": "processing"}
 
 @app.post("/send-status-update")
-def send_status_update(background_tasks: BackgroundTasks, email: str = Form(...), order_id: int = Form(...), new_status: str = Form(...)):
+def send_status_update(background_tasks: BackgroundTasks, email: str = Form(...), order_id: int = Form(...), new_status: str = Form(...), base_url: str = Form("http://127.0.0.1:8000")):
     status_colors = {
         "new": "#3498db",
         "in progress": "#f39c12",
@@ -206,7 +206,7 @@ def send_status_update(background_tasks: BackgroundTasks, email: str = Form(...)
             <p>Вітаємо! Ваше замовлення перейшло на новий етап. Ми робимо все можливе, щоб ви отримали якісний результат якнайшвидше.</p>
             
             <div style="text-align: center; margin: 35px 0;">
-                <a href="http://127.0.0.1:8000/orders_page" style="background-color: #a3d392; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; transition: background 0.3s;">Переглянути замовлення</a>
+                <a href="{base_url}/orders_page" style="background-color: #a3d392; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; transition: background 0.3s;">Переглянути замовлення</a>
             </div>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">

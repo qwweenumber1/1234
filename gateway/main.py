@@ -80,6 +80,10 @@ def admin_page(): return get_html("admin.html")
 @app.post("/register")
 async def register(request: Request):
     form = await request.form()
+    
+    # Capture base_url for verification links (e.g., http://192.168.31.131:8000)
+    base_url = str(request.base_url).rstrip('/')
+
     async with httpx.AsyncClient() as client:
         resp = await client.post(SERVICES["auth"] + "/register", data=form)
     if resp.status_code != 200:
@@ -96,7 +100,9 @@ async def register(request: Request):
     # Call notification service to "send" email
     if v_token:
         async with httpx.AsyncClient() as client:
-            await client.post(SERVICES["notification"] + "/send-verification", data={"email": email, "token": v_token}, timeout=10.0)
+            await client.post(SERVICES["notification"] + "/send-verification", 
+                             data={"email": email, "token": v_token, "base_url": base_url}, 
+                             timeout=10.0)
 
     response = RedirectResponse("/registration_success", status_code=303)
     response.set_cookie("access_token", token, httponly=True, samesite="lax")
