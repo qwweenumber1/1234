@@ -8,3 +8,5 @@ python-multipart
 openai
 google-genai
 httpx
+pytest
+pytest-asyncio

@@ -1,11 +1,15 @@
+import os, shutil
 from fastapi import FastAPI, Form, UploadFile, File, Depends
 from sqlalchemy.orm import Session
 from .database import get_db, Base, engine
 from . import crud
 from .security import get_current_user
-import os, shutil
 
 app = FastAPI(title="Orders Service")
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "orders"}
 UPLOAD_DIR = "uploaded_files"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -53,6 +57,7 @@ def get_orders(user_email: str = Depends(get_current_user), db: Session = Depend
 def delete_order(order_id: int, user_email: str = Depends(get_current_user), db: Session = Depends(get_db)):
     success = crud.delete_order(db, order_id, user_email)
     if not success:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Order not found or not owned by user")
     return {"message": "Order deleted"}
+
+

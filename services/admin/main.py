@@ -1,25 +1,19 @@
-from fastapi import FastAPI, Depends, Form, HTTPException, BackgroundTasks
-import httpx
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI, Form, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
-from services.orders.database import SessionLocal, Base, engine
-from .crud import get_all_orders, update_order_status, delete_order
-from services.orders.models import Order
+import httpx
+import os
+from services.orders.database import get_db
+from . import crud
 
-Base.metadata.create_all(bind=engine)
+app = FastAPI(title="Admin Service")
 
-app = FastAPI()
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "admin"}
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.get("/admin")
+@app.get("/")
 def admin_panel(email: str = "", db: Session = Depends(get_db)):
-    orders = get_all_orders(db, email)
+    orders = crud.get_all_orders(db, email)
     return {
         "orders": [
             {
@@ -38,15 +32,13 @@ def admin_panel(email: str = "", db: Session = Depends(get_db)):
 
 @app.post("/update_status/{order_id}")
 async def update_status(background_tasks: BackgroundTasks, order_id: int, status: str = Form(...), db: Session = Depends(get_db)):
-    order = update_order_status(db, order_id, status)
+    order = crud.update_order_status(db, order_id, status)
     if order and order.user_email:
-        # Trigger notification in background
-        NOTIFICATION_URL = "http://127.0.0.1:8004/send-status-update"
+        # Trigger notification via Notification Service
+        NOTIFICATION_URL = os.getenv("NOTIFICATION_SERVICE_URL", "http://127.0.0.1:8004") + "/send-status-update"
         
         async def notify():
             try:
-                # Reconstruct base_url if possible, otherwise use a safe default
-                # Since admin is usually accessed via the gateway on port 8000
                 base_url = "http://127.0.0.1:8000" 
                 async with httpx.AsyncClient() as client:
                     await client.post(NOTIFICATION_URL, data={
@@ -63,6 +55,8 @@ async def update_status(background_tasks: BackgroundTasks, order_id: int, status
     return {"message": "Status updated"}
 
 @app.delete("/delete_order/{order_id}")
-def delete(order_id: int, db: Session = Depends(get_db)):
-    delete_order(db, order_id)
+def delete_order(order_id: int, db: Session = Depends(get_db)):
+    order = crud.delete_order(db, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
     return {"message": "Order deleted"}

@@ -1,15 +1,13 @@
-# services/auth/main.py
 from datetime import datetime, timedelta
+import re
+import uuid
 from fastapi import FastAPI, Form, Depends, HTTPException, Cookie
-from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
+from .database import engine, SessionLocal
 from .models import Base, User
 from .crud import get_user_by_email, create_user
 from .security import verify_password, hash_password, create_access_token, decode_access_token
-from .database import engine, SessionLocal
-
-import uuid
-import re
 
 # ... Инициализация ---
 def run_migrations():
@@ -39,6 +37,9 @@ run_migrations()
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Auth Service")
 
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "auth"}
 
 # --- DB зависимость ---
 def get_db():
@@ -181,8 +182,9 @@ def me(access_token: str = Cookie(None), db: Session = Depends(get_db)):
 
 
 @app.post("/logout")
-def logout(response: JSONResponse):
-    content = {"message": "Logged out successfully"}
-    response = JSONResponse(content=content)
+def logout():
+    response = JSONResponse(content={"message": "Logged out successfully"})
     response.delete_cookie("access_token")
     return response
+
+

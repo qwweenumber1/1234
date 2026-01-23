@@ -6,6 +6,10 @@ import json
 
 app = FastAPI(title="Smart 3D AI Assistant")
 
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "ai"}
+
 # --- Amarsia Config ---
 # I'm using the Standard API (Runner) as it is the most stable and reliable for this type of integration.
 AMARSIA_API_KEY = os.getenv("AMARSIA_API_KEY", "TGcj37gy64RMm-AX3_X1u5oRYmabfimrnyeKeY5YUOc")

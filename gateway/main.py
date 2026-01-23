@@ -12,11 +12,11 @@ app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 
 # ================= SERVICES =================
 SERVICES = {
-    "auth": "http://127.0.0.1:8005",
-    "orders": "http://127.0.0.1:8001",
-    "notification": "http://127.0.0.1:8004",
-    "admin": "http://127.0.0.1:8006",
-    "ai": "http://127.0.0.1:8007",
+    "auth": os.getenv("AUTH_SERVICE_URL", "http://127.0.0.1:8005"),
+    "orders": os.getenv("ORDERS_SERVICE_URL", "http://127.0.0.1:8001"),
+    "notification": os.getenv("NOTIFICATION_SERVICE_URL", "http://127.0.0.1:8004"),
+    "admin": os.getenv("ADMIN_SERVICE_URL", "http://127.0.0.1:8006"),
+    "ai": os.getenv("AI_SERVICE_URL", "http://127.0.0.1:8007"),
 }
 
 # ================= UPLOADS =================
@@ -60,6 +60,10 @@ def get_html(name: str):
         return HTMLResponse("<h1>HTML not found</h1>", 404)
     with open(path, encoding="utf-8") as f:
         return HTMLResponse(f.read())
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "service": "gateway"}
 
 @app.get("/", response_class=HTMLResponse)
 def index(): return get_html("index.html")
@@ -261,7 +265,7 @@ async def notifications(request: Request):
 async def admin_dashboard(request: Request):
     # Pass 'email' query param if present
     email = request.query_params.get("email")
-    path = f"/admin?email={email}" if email else "/admin"
+    path = f"/admin?email={email}" if email else "/"
     data, status_code = await proxy_request("admin", path, request)
     return JSONResponse(data, status_code=status_code)
 
