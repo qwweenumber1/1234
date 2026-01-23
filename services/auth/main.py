@@ -1,4 +1,5 @@
 # services/auth/main.py
+from datetime import datetime, timedelta
 from fastapi import FastAPI, Form, Depends, HTTPException, Cookie
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
@@ -11,6 +12,30 @@ import uuid
 import re
 
 # ... Инициализация ---
+def run_migrations():
+    import sqlite3
+    from .database import DB_PATH
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        columns = [
+            ("verification_token_expires_at", "DATETIME"),
+            ("last_verification_request_at", "DATETIME"),
+            ("verification_request_count", "INTEGER DEFAULT 0"),
+            ("is_blocked", "INTEGER DEFAULT 0"),
+            ("blocked_until", "DATETIME")
+        ]
+        for col_name, col_type in columns:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}")
+            except sqlite3.OperationalError:
+                pass
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Migration error: {e}")
+
+run_migrations()
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Auth Service")
 
@@ -28,11 +53,15 @@ def get_db():
 @app.post("/register")
 def register(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     if get_user_by_email(db, email):
-        raise HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(status_code=400, detail="Цей Email вже зареєстрований")
+
+    # Minimum length validation
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Пароль має містити щонайменше 6 символів")
 
     # English-only password validation
     if not re.match(r"^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]+$", password):
-        raise HTTPException(status_code=400, detail="Password must contain only English characters and symbols")
+        raise HTTPException(status_code=400, detail="Пароль має містити лише англійські літери та символи")
 
     hashed = hash_password(password)
     verification_token = str(uuid.uuid4())
@@ -50,6 +79,62 @@ def register(email: str = Form(...), password: str = Form(...), db: Session = De
             "user": {"email": user.email, "role": user.role, "is_verified": user.is_verified}
         }
     )
+
+@app.post("/resend-verification")
+def resend_verification(email: str = Form(...), db: Session = Depends(get_db)):
+    user = get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="User is already verified")
+
+    now = datetime.utcnow()
+
+    # Check if blocked
+    if user.is_blocked:
+        if user.blocked_until and user.blocked_until > now:
+            remaining = int((user.blocked_until - now).total_seconds() / 60)
+            raise HTTPException(status_code=429, detail=f"Too many attempts. Blocked for {remaining} more minutes.")
+        else:
+            # Block expired
+            user.is_blocked = 0
+            user.verification_request_count = 0
+            user.blocked_until = None
+
+    # Check cooldown (3 min)
+    if user.last_verification_request_at:
+        diff = now - user.last_verification_request_at
+        if diff < timedelta(minutes=3):
+            remaining = 180 - int(diff.total_seconds())
+            raise HTTPException(status_code=429, detail=f"Please wait {remaining} seconds before requesting again.")
+
+    # Increment count
+    user.verification_request_count += 1
+    
+    # Block if reached limit (3)
+    if user.verification_request_count >= 4: # 1st on reg + 3 resends? Or total 3?
+        # Let's say total 3 requests (1 on reg + 2 resends)
+        # User said "после третьего раза блокируеться" - after 3rd time.
+        # So 1st (reg), 2nd (resend), 3rd (resend) -> block.
+        user.is_blocked = 1
+        user.blocked_until = now + timedelta(minutes=10)
+        db.commit()
+        raise HTTPException(status_code=429, detail="Maximum attempts reached. Blocked for 10 minutes.")
+
+    # Generate new token
+    new_token = str(uuid.uuid4())
+    user.verification_token = new_token
+    user.verification_token_expires_at = now + timedelta(minutes=3)
+    user.last_verification_request_at = now
+    
+    db.commit()
+    
+    return {
+        "message": "New verification link sent.",
+        "verification_token": new_token,
+        "email": user.email
+    }
 
 @app.get("/verify/{token}")
 def verify(token: str, db: Session = Depends(get_db)):

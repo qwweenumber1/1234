@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Помилка входу - Smart 3D</title>
+    <link rel="stylesheet" href="/static/css/index.css?v=11">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap&subset=cyrillic"
+        rel="stylesheet">
+    <link rel="icon" href="/static/favicon.ico">
+    <style>
+        .error-container {
+            max-width: 500px;
+            margin: 100px auto;
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-icon {
+            font-size: 48px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: #a3d392;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #85b870;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="top-menu">
+        <div class="menu-left">
+            <a href="/" class="menu-logo">Smart3D</a>
+        </div>
+    </header>
+
+    <main class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1>Помилка авторизації</h1>
+        <p>Невірний логін або пароль. Будь ласка, перевірте ваші дані та спробуйте ще раз.</p>
+        <a href="/login_page" class="back-btn">Повернутися до входу</a>
+    </main>
+</body>
+
+</html>

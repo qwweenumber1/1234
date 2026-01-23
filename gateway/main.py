@@ -16,6 +16,7 @@ SERVICES = {
     "orders": "http://127.0.0.1:8001",
     "notification": "http://127.0.0.1:8004",
     "admin": "http://127.0.0.1:8006",
+    "ai": "http://127.0.0.1:8007",
 }
 
 # ================= UPLOADS =================
@@ -66,8 +67,14 @@ def index(): return get_html("index.html")
 @app.get("/register_page", response_class=HTMLResponse)
 def register_page(): return get_html("register.html")
 
+@app.get("/register_error", response_class=HTMLResponse)
+def register_error(): return get_html("register_error.html")
+
 @app.get("/login_page", response_class=HTMLResponse)
 def login_page(): return get_html("login.html")
+
+@app.get("/login_error", response_class=HTMLResponse)
+def login_error(): return get_html("login_error.html")
 
 @app.get("/orders_page", response_class=HTMLResponse)
 def orders_page(): return get_html("orders.html")
@@ -86,10 +93,14 @@ async def register(request: Request):
     async with httpx.AsyncClient() as client:
         resp = await client.post(SERVICES["auth"] + "/register", data=form)
     if resp.status_code != 200:
+        detail = "Помилка реєстрації"
         try:
-            return JSONResponse(resp.json(), resp.status_code)
+            detail = resp.json().get("detail", detail)
         except Exception:
-            return JSONResponse({"detail": resp.text}, resp.status_code)
+            detail = resp.text
+        
+        from urllib.parse import quote
+        return RedirectResponse(f"/register_error?detail={quote(detail)}", status_code=303)
     
     auth_data = resp.json()
     token = auth_data["access_token"]
@@ -138,6 +149,8 @@ async def login(request: Request):
     async with httpx.AsyncClient() as client:
         resp = await client.post(SERVICES["auth"] + "/login", data=form)
     if resp.status_code != 200:
+        if resp.status_code == 401:
+            return RedirectResponse("/login_error", status_code=303)
         try:
             return JSONResponse(resp.json(), resp.status_code)
         except Exception:
@@ -146,6 +159,38 @@ async def login(request: Request):
     response = RedirectResponse("/orders_page", status_code=303)
     response.set_cookie("access_token", token, httponly=True, samesite="lax")
     return response
+
+@app.post("/resend-verification")
+async def resend_verification(request: Request):
+    form = await request.form()
+    base_url = str(request.base_url).rstrip('/')
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(SERVICES["auth"] + "/resend-verification", data=form)
+    
+    if resp.status_code != 200:
+        try:
+            return JSONResponse(resp.json(), resp.status_code)
+        except Exception:
+            return JSONResponse({"detail": resp.text}, resp.status_code)
+    
+    data = resp.json()
+    email = data["email"]
+    v_token = data["verification_token"]
+
+    # Call notification service
+    async with httpx.AsyncClient() as client:
+        await client.post(SERVICES["notification"] + "/send-verification", 
+                         data={"email": email, "token": v_token, "base_url": base_url}, 
+                         timeout=10.0)
+
+    return JSONResponse({"message": "Link resent successfully"})
+
+@app.post("/ai/chat")
+async def ai_chat(request: Request):
+    form = await request.form()
+    data, status_code = await proxy_request("ai", "/chat", request, method="POST", data=form)
+    return JSONResponse(data, status_code=status_code)
 
 @app.get("/me")
 async def me(request: Request):

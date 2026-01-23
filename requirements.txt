@@ -5,3 +5,6 @@ pymysql
 python-jose
 passlib[bcrypt]==4.3.0
 python-multipart
+openai
+google-genai
+httpx

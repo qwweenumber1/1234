@@ -69,6 +69,30 @@
         <ul id="ordersList"></ul>
     </main>
 
+    <!-- Modal for Delete Confirmation -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top: 0;">Видалити замовлення?</h3>
+            <p>Цю дію неможливо відмінити.</p>
+            <div class="modal-actions">
+                <button id="cancelDeleteBtn" class="modal-btn cancel">Ні, залишити</button>
+                <button id="confirmDeleteBtn" class="modal-btn confirm">Так, видалити</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Status Update Confirmation -->
+    <div id="updateModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top: 0;">Оновити статус?</h3>
+            <p>Ви впевнені, що хочете змінити статус замовлення?</p>
+            <div class="modal-actions">
+                <button id="cancelUpdateBtn" class="modal-btn cancel">Скасувати</button>
+                <button id="confirmUpdateBtn" class="modal-btn confirm-update">Так, оновити</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="footer-grid">
             <!-- 1 -->
@@ -181,36 +205,65 @@
                             <option value="done" ${o.status === 'done' ? 'selected' : ''}>Готово</option>
                             <option value="canceled" ${o.status === 'canceled' ? 'selected' : ''}>Скасовано</option>
                         </select>
-                        <button onclick="updateStatus(${o.id})" style="background: #a3d392; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Оновити</button>
-                        <button class="delete-btn" onclick="deleteOrder(${o.id})" style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Видалити</button>
+                        <button onclick="requestUpdate(${o.id})" style="background: #a3d392; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Оновити</button>
+                        <button class="delete-btn" onclick="requestDelete(${o.id})" style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Видалити</button>
                     </div>
                 `;
                 list.appendChild(li);
             });
         }
 
-        async function updateStatus(id) {
-            const status = document.getElementById(`status-${id}`).value;
-            const formData = new FormData();
-            formData.append("status", status);
-            const res = await fetch(`/admin/update_status/${id}`, { method: "POST", body: formData, credentials: "include" });
-            if (res.ok) {
-                alert("Статус оновлено");
-                loadOrders();
-            } else {
-                alert("Не вдалося оновити статус");
-            }
+        let currentOrderId = null;
+        const deleteModal = document.getElementById("deleteModal");
+        const updateModal = document.getElementById("updateModal");
+
+        function requestDelete(id) {
+            currentOrderId = id;
+            deleteModal.classList.add("active");
         }
 
-        async function deleteOrder(id) {
-            if (!confirm("Видалити це замовлення?")) return;
-            const res = await fetch(`/admin/delete_order/${id}`, { method: "DELETE", credentials: "include" });
+        function requestUpdate(id) {
+            currentOrderId = id;
+            updateModal.classList.add("active");
+        }
+
+        function closeModals() {
+            currentOrderId = null;
+            deleteModal.classList.remove("active");
+            updateModal.classList.remove("active");
+        }
+
+        document.getElementById("cancelDeleteBtn").onclick = closeModals;
+        document.getElementById("cancelUpdateBtn").onclick = closeModals;
+
+        document.getElementById("confirmDeleteBtn").onclick = async () => {
+            if (!currentOrderId) return;
+            const res = await fetch(`/admin/delete_order/${currentOrderId}`, { method: "DELETE", credentials: "include" });
             if (res.ok) {
                 loadOrders();
             } else {
                 alert("Помилка видалення");
             }
-        }
+            closeModals();
+        };
+
+        document.getElementById("confirmUpdateBtn").onclick = async () => {
+            if (!currentOrderId) return;
+            const status = document.getElementById(`status-${currentOrderId}`).value;
+            const formData = new FormData();
+            formData.append("status", status);
+            const res = await fetch(`/admin/update_status/${currentOrderId}`, { method: "POST", body: formData, credentials: "include" });
+            if (res.ok) {
+                loadOrders();
+            } else {
+                alert("Не вдалося оновити статус");
+            }
+            closeModals();
+        };
+
+        window.onclick = (e) => {
+            if (e.target === deleteModal || e.target === updateModal) closeModals();
+        };
 
         loadOrders();
     </script>

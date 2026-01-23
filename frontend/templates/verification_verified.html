@@ -11,11 +11,16 @@
         body {
             background-color: #f6f8f6;
             margin: 0;
+            font-family: 'Roboto Slab', serif;
+        }
+
+        .main-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            font-family: 'Roboto Slab', serif;
+            min-height: calc(100vh - 200px);
+            /* Adjust based on footer height approx */
+            padding: 40px 20px;
         }
 
         .success-card {
@@ -75,14 +80,16 @@
 </head>
 
 <body>
-    <div class="success-card">
-        <div class="success-icon">✓</div>
-        <div class="success-title">Email Підтверджено!</div>
-        <div class="success-text">
-            Ваш акаунт успішно активовано. Тепер ви можете користуватися всіма функціями <span
-                style="color: #4b8f3f; font-weight: 700;">Smart 3D</span> та оформляти замовлення.
+    <div class="main-wrapper">
+        <div class="success-card">
+            <div class="success-icon">✓</div>
+            <div class="success-title">Email Підтверджено!</div>
+            <div class="success-text">
+                Ваш акаунт успішно активовано. Тепер ви можете користуватися всіма функціями <span
+                    style="color: #4b8f3f; font-weight: 700;">Smart 3D</span> та оформляти замовлення.
+            </div>
+            <a href="/" class="home-button">На головну</a>
         </div>
-        <a href="/" class="home-button">На головну</a>
     </div>
 
     <footer class="footer">

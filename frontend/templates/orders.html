@@ -154,9 +154,17 @@
                     const vMsg = document.getElementById("verificationMessage");
                     if (vMsg && !user.is_verified) {
                         vMsg.innerHTML = `
-                            <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px;">
-                                <strong>Email не підтверджено!</strong> Будь ласка, перевірте пошту (або розділ сповіщень) для підтвердження акаунту. 
-                                Ви не зможете створювати замовлення до підтвердження.
+                            <div style="background: #fff3cd; color: #856404; padding: 20px; border-radius: 12px; border: 1px solid #ffeeba; margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                                    <div>
+                                        <strong>Email не підтверджено!</strong> Будь ласка, перевірте пошту (або розділ сповіщень) для підтвердження акаунту. 
+                                        Ви не зможете створювати замовлення до підтвердження.
+                                    </div>
+                                    <button id="resendBtn" onclick="resendEmail('${user.email}')" style="background: #856404; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap;">
+                                        Надіслати знову
+                                    </button>
+                                </div>
+                                <div id="resendStatus" style="font-size: 0.9em; margin-top: 10px;"></div>
                             </div>
                         `;
                         if (form) {
@@ -180,6 +188,47 @@
             } catch (e) { console.error(e); }
         }
         checkRole();
+
+        async function resendEmail(email) {
+            const btn = document.getElementById("resendBtn");
+            const status = document.getElementById("resendStatus");
+            if (!btn) return;
+            btn.disabled = true;
+            status.textContent = "Надсилаємо...";
+            status.style.color = "#856404";
+
+            try {
+                const formData = new FormData();
+                formData.append("email", email);
+                const res = await fetch("/resend-verification", { method: "POST", body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    status.textContent = "Посилання надіслано! Перевірте пошту.";
+                    status.style.color = "#155724";
+                    // Simple 60s cooldown on UI
+                    let count = 60;
+                    const timer = setInterval(() => {
+                        count--;
+                        if (count <= 0) {
+                            clearInterval(timer);
+                            btn.disabled = false;
+                            btn.textContent = "Надіслати знову";
+                        } else {
+                            btn.textContent = `Зачекайте ${count}с`;
+                        }
+                    }, 1000);
+                } else {
+                    status.textContent = "Помилка: " + (data.detail || "Невідома помилка");
+                    status.style.color = "#721c24";
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                status.textContent = "Помилка мережі";
+                status.style.color = "#721c24";
+                btn.disabled = false;
+            }
+        }
 
         if (form) {
             form.addEventListener("submit", async (e) => {
