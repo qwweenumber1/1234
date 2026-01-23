@@ -14,7 +14,6 @@ app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 SERVICES = {
     "auth": "http://127.0.0.1:8005",
     "orders": "http://127.0.0.1:8001",
-    "payment": "http://127.0.0.1:8003",
     "notification": "http://127.0.0.1:8004",
     "admin": "http://127.0.0.1:8006",
 }
@@ -205,12 +204,6 @@ async def create_order(request: Request):
     result, status_code = await proxy_request("orders", "/create_order", request, method="POST", data=data, files=files)
     return JSONResponse(result, status_code=status_code)
 
-# ================= PAYMENT =================
-@app.post("/payment/pay")
-async def pay(request: Request):
-    form = await request.form()
-    data, status_code = await proxy_request("payment", "/pay", request, method="POST", data=form)
-    return JSONResponse(data, status_code=status_code)
 
 # ================= NOTIFICATION =================
 @app.get("/notifications")

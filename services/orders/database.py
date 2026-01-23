@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "sqlite:///c:/ggg/data/orders.db"
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}  # для SQLite
-)
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+DB_PATH = os.path.join(DATA_DIR, "orders.db").replace("\\", "/")
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -28,7 +28,7 @@ def check_and_migrate():
     # Simple migration logic for SQLite
     import sqlite3
     try:
-        conn = sqlite3.connect("c:/ggg/data/orders.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Check/Add color
