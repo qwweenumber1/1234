@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, UploadFile, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import httpx
 import os
 from datetime import datetime
@@ -28,6 +29,11 @@ async def proxy_request(service: str, path: str, request: Request, method: str =
     url = SERVICES[service] + path
     cookies = {}
     token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
     if token:
         cookies["access_token"] = token
 
@@ -54,37 +60,38 @@ async def proxy_request(service: str, path: str, request: Request, method: str =
         return {"detail": resp.text}, resp.status_code
 
 # ================= FRONTEND =================
-def get_html(name: str):
-    path = os.path.join("frontend", "templates", name)
-    if not os.path.exists(path):
-        return HTMLResponse("<h1>HTML not found</h1>", 404)
-    with open(path, encoding="utf-8") as f:
-        return HTMLResponse(f.read())
+templates = Jinja2Templates(directory="frontend/templates")
+
+def get_html(name: str, request: Request):
+    return templates.TemplateResponse(name, {"request": request})
 
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "gateway"}
 
 @app.get("/", response_class=HTMLResponse)
-def index(): return get_html("index.html")
+async def index(request: Request): return get_html("index.html", request)
+
+@app.get("/info", response_class=HTMLResponse)
+async def info_page(request: Request): return get_html("info.html", request)
 
 @app.get("/register_page", response_class=HTMLResponse)
-def register_page(): return get_html("register.html")
+async def register_page(request: Request): return get_html("register.html", request)
 
 @app.get("/register_error", response_class=HTMLResponse)
-def register_error(): return get_html("register_error.html")
+async def register_error(request: Request): return get_html("register_error.html", request)
 
 @app.get("/login_page", response_class=HTMLResponse)
-def login_page(): return get_html("login.html")
+async def login_page(request: Request): return get_html("login.html", request)
 
 @app.get("/login_error", response_class=HTMLResponse)
-def login_error(): return get_html("login_error.html")
+async def login_error(request: Request): return get_html("login_error.html", request)
 
 @app.get("/orders_page", response_class=HTMLResponse)
-def orders_page(): return get_html("orders.html")
+async def orders_page(request: Request): return get_html("orders.html", request)
 
 @app.get("/admin_page", response_class=HTMLResponse)
-def admin_page(): return get_html("admin.html")
+async def admin_page(request: Request): return get_html("admin.html", request)
 
 # ================= AUTH =================
 @app.post("/register")
@@ -123,12 +130,12 @@ async def register(request: Request):
     return response
 
 @app.get("/registration_success", response_class=HTMLResponse)
-def registration_success():
-    return get_html("registration_success.html")
+async def registration_success(request: Request):
+    return get_html("registration_success.html", request)
 
 @app.get("/contacts", response_class=HTMLResponse)
-def contacts_page():
-    return get_html("contacts.html")
+async def contacts_page(request: Request):
+    return get_html("contacts.html", request)
 
 @app.post("/contacts")
 async def handle_contacts(request: Request):
@@ -140,11 +147,11 @@ async def handle_contacts(request: Request):
     return JSONResponse({"status": "sent"})
 
 @app.get("/verify/{token}")
-async def verify_email(token: str):
+async def verify_email(token: str, request: Request):
     async with httpx.AsyncClient() as client:
         resp = await client.get(SERVICES["auth"] + f"/verify/{token}")
     if resp.status_code == 200:
-        return get_html("verification_verified.html")
+        return get_html("verification_verified.html", request)
     return HTMLResponse(f"<h1>Verification failed</h1><p>{resp.json().get('detail')}</p>", status_code=resp.status_code)
 
 @app.post("/login")

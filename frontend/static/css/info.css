@@ -1,0 +1,143 @@
+.text-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: 100%;
+    margin: 40px 0;
+    gap: 0;
+}
+
+@media (max-width: 768px) {
+    .text-grid-2 {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+.text-grid-3-center {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: 100%;
+    max-width: 95%;
+    margin: 40px auto;
+    gap: 10px;
+}
+
+.text-grid-3-center .img-center {
+    width: 25vw;
+    max-width: 300px;
+    height: auto;
+    border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+
+    .text-grid-2,
+    .text-grid-3-center {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .text-grid-3-center .img-center {
+        width: 80vw;
+        max-width: 350px;
+        margin: 20px auto;
+    }
+}
+
+.text-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    /* центрируем весь блок */
+    gap: clamp(10px, 2vw, 50px);
+    /* расстояние уменьшено */
+    margin-top: 50px;
+}
+
+.img-big {
+    width: 80vw;
+    max-width: 800px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 16px;
+}
+
+.img {
+    width: 30vw;
+    max-width: 300px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 12px;
+}
+
+.tight-spacing {
+    line-height: 3;
+    /* Примерно 3-4px между строк */
+}
+
+
+
+.green {
+    position: relative;
+    margin-top: 12px;
+    text-align: center;
+    font-family: 'Roboto Slab', serif;
+    font-weight: 700;
+    font-size: clamp(18px, 3vw, 40px);
+    color: #84b673;
+
+}
+
+
+
+
+
+
+
+
+
+
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    -family: Arial, sans-serif;
+    font-size: 14px;
+    background: #fff;
+}
+
+.compare-table thead {
+    background: #f6f7f9;
+}
+
+.compare-table th,
+.compare-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e6e6e6;
+    text-align: left;
+    color: #2f2f2f;
+}
+
+.compare-table th {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #7a7a7a;
+}
+
+.compare-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.text-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px 20px 20px;
+    text-align: center;
+    width: 100%;
+}

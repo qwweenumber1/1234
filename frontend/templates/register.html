@@ -1,125 +1,84 @@
-<!DOCTYPE html>
-<html lang="uk">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% block title %}Smart 3D - Реєстрація{% endblock %}
 
-    <link rel="stylesheet" href="/static/css/index.css">
+{% block content %}
 
+<main class="auth-page">
+    <div class="auth-card">
+        <div class="auth-title">Реєстрація</div>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap&subset=cyrillic"
-        rel="stylesheet">
+        <form action="/register" method="post" class="auth-form">
+            <input type="email" name="email" placeholder="Email" required /><br><br>
+            <input type="password" name="password" placeholder="Пароль" required /><br><br>
+            <button type="submit">Зареєструватися</button>
+        </form>
 
-
-    <title>Smart 3D</title>
-    <link rel="icon" href="/static/favicon.ico">
-</head>
-
-<body style="margin: 0;">
-
-
-    <header class="top-menu">
-        <div class="menu-left">
-            <a href="/" class="menu-logo" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
-                Smart3D
-            </a>
+        <div class="auth-footer-text">
+            Вже маєте акаунт?
+            <a href="/login_page">Увійти</a>
         </div>
+    </div>
+</main>
 
-        <nav class="menu-right">
-            <a href="/contacts">Зв'язок</a>
-            <a href="/">Iнформацiя</a>
-            <a href="#" onclick="handleOrdersClick()">Замовлення</a>
-            <a href="/login_page">Вхід</a>
-        </nav>
-        <script>
-            async function handleOrdersClick() {
-                try {
-                    const res = await fetch("/me", { credentials: "include" });
-                    if (res.ok) window.location.href = "/orders_page";
-                    else window.location.href = "/login_page";
-                } catch { window.location.href = "/login_page"; }
-            }
-        </script>
-    </header>
 
-    <main class="auth-page">
-        <div class="auth-card">
-            <div class="auth-title">Реєстрація</div>
 
-            <form action="/register" method="post" class="auth-form">
-                <input type="email" name="email" placeholder="Email" required /><br><br>
-                <input type="password" name="password" placeholder="Пароль" required /><br><br>
-                <button type="submit">Зареєструватися</button>
-            </form>
 
-            <div class="auth-footer-text">
-                Вже маєте акаунт?
-                <a href="/login_page">Увійти</a>
+<footer class="footer">
+    <div class="footer-grid">
+        <!-- 1 -->
+        <div>
+            <div class="footer-title"><a href="/" style="color: inherit; text-decoration: none;">Smart3D</a></div>
+            <div class="footer-text">
+                3D-Studio — команда професіоналів, відданих своїй справі.
+                Наш пріоритет — висока якість і максимальний результат
+                у кожному проєкті. Пропонуємо доступний 3D-друк
+                з швидкою доставкою по всій Україні.
+            </div>
+            <div class="footer-socials">
+                <img src="/static/icons/facebook.svg" alt="Facebook">
+                <img src="/static/icons/instagram.svg" alt="Instagram">
+                <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank"><img
+                        src="/static/icons/youtube.svg" alt="YouTube"></a>
             </div>
         </div>
-    </main>
-
-
-
-
-    <footer class="footer">
-        <div class="footer-grid">
-            <!-- 1 -->
-            <div>
-                <div class="footer-title"><a href="/" style="color: inherit; text-decoration: none;">Smart3D</a></div>
-                <div class="footer-text">
-                    3D-Studio — команда професіоналів, відданих своїй справі.
-                    Наш пріоритет — висока якість і максимальний результат
-                    у кожному проєкті. Пропонуємо доступний 3D-друк
-                    з швидкою доставкою по всій Україні.
-                </div>
-                <div class="footer-socials">
-                    <img src="/static/icons/facebook.svg" alt="Facebook">
-                    <img src="/static/icons/instagram.svg" alt="Instagram">
-                    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank"><img
-                            src="/static/icons/youtube.svg" alt="YouTube"></a>
-                </div>
-            </div>
-            <!-- 2 -->
-            <div>
-                <div class="footer-title">Інформація</div>
-                <div class="footer-text">
-                    3D друк SLA на замовлення — високоточний друк для складних моделей<br><br>
-                    3D друк FDM на замовлення — точні та міцні деталі за вашою 3D моделлю<br><br>
-                    Кольоровий 3D друк FDM — багатокольорові моделі на замовлення
-                </div>
-            </div>
-            <!-- 3 -->
-            <div>
-                <div class="footer-title">Зв’язатися з нами</div>
-                <div class="footer-contact">
-                    <img src="/static/icons/phone.svg" alt="">
-                    <span><a href="tel:+380672659865" style="color: inherit; text-decoration: none;">+38 (067) 265 98
-                            65</a></span>
-                </div>
-                <div class="footer-contact">
-                    <img src="/static/icons/phone.svg" alt="">
-                    <span><a href="tel:+380662004790" style="color: inherit; text-decoration: none;">+38 (066) 200 47
-                            90</a></span>
-                    <a href="https://wa.me/380662004790" style="margin-left: 10px;"><img
-                            src="/static/icons/whatsapp_color.png" width="24" title="WhatsApp"></a>
-                    <a href="https://t.me/+380662004790" style="margin-left: 8px;"><img
-                            src="/static/icons/telegram_color.png" width="24" title="Telegram"></a>
-                </div>
-                <div class="footer-contact">
-                    <img src="/static/icons/mail.svg" alt="">
-                    <span>info@smart3d.com.ua</span>
-                </div>
-                <div class="footer-contact">
-                    <img src="/static/icons/mail.svg" alt="">
-                    <span>smart-3D.printing@gmail.com</span>
-                </div>
+        <!-- 2 -->
+        <div>
+            <div class="footer-title">Інформація</div>
+            <div class="footer-text">
+                3D друк SLA на замовлення — високоточний друк для складних моделей<br><br>
+                3D друк FDM на замовлення — точні та міцні деталі за вашою 3D моделлю<br><br>
+                Кольоровий 3D друк FDM — багатокольорові моделі на замовлення
             </div>
         </div>
-    </footer>
+        <!-- 3 -->
+        <div>
+            <div class="footer-title">Зв’язатися з нами</div>
+            <div class="footer-contact">
+                <img src="/static/icons/phone.svg" alt="">
+                <span><a href="tel:+380672659865" style="color: inherit; text-decoration: none;">+38 (067) 265 98
+                        65</a></span>
+            </div>
+            <div class="footer-contact">
+                <img src="/static/icons/phone.svg" alt="">
+                <span><a href="tel:+380662004790" style="color: inherit; text-decoration: none;">+38 (066) 200 47
+                        90</a></span>
+                <a href="https://wa.me/380662004790" style="margin-left: 10px;"><img
+                        src="/static/icons/whatsapp_color.png" width="24" title="WhatsApp"></a>
+                <a href="https://t.me/+380662004790" style="margin-left: 8px;"><img
+                        src="/static/icons/telegram_color.png" width="24" title="Telegram"></a>
+            </div>
+            <div class="footer-contact">
+                <img src="/static/icons/mail.svg" alt="">
+                <span>info@smart3d.com.ua</span>
+            </div>
+            <div class="footer-contact">
+                <img src="/static/icons/mail.svg" alt="">
+                <span>smart-3D.printing@gmail.com</span>
+            </div>
+        </div>
+    </div>
+</footer>
 
 
 
