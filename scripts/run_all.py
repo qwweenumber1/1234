@@ -10,6 +10,7 @@ SERVICES = [
     ("Notification", "services.notification.main:app", 8004),
     ("Admin", "services.admin.main:app", 8006),
     ("AI", "services.ai.main:app", 8007),
+    ("Frontend", "services.frontend.main:app", 8008),
     ("Gateway", "gateway.main:app", 8000),
 ]
 

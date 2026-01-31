@@ -1,39 +1,34 @@
-# Multi-Service Backend with API Gateway
+# Smart 3D Professionals - Мікросервісна Архітектура
 
-A robust microservices-based backend system with a central API Gateway, written in Python with FastAPI.
+Цей проект є комплексною системою для управління 3D-друком, побудованою на базі Fast API з використанням мікросервісної архітектури.
 
-## Features
-- **API Gateway**: Central entry point for all requests.
-- **Auth Service**: User registration, login, and JWT-based authentication.
-- **Orders Service**: Management of user orders and file uploads.
-- **Admin Service**: Dashboard and status management.
-- **Notification Service**: SMTP email integration (verification emails).
-- **AI Service**: Chat integration.
-- **Mobile Friendly**: Supports standard `Bearer Token` authentication.
+## Запуск проекту
 
-## Quick Start (Local Run)
-
-### 1. Requirements
-Ensure you have **Python 3.10+** installed. Install dependencies:
-```bash
-pip install -r requirements.txt
+Для локального запуску всіх сервісів використовуйте:
+```powershell
+.\run_all.bat
 ```
 
-### 2. Environment Variables
-Copy the example file and fill in your secrets (SMTP, AI keys, etc.):
-```bash
-copy .env.example .env
-```
-*(Note: At minimum, you should set a custom `SECRET_KEY`).*
+Після запуску система буде доступна за адресою: `http://localhost:8000`
 
-### 3. Run All Services
-Simply run the batch file:
-```bash
-run_all.bat
-```
-The Gateway will be available at: `http://localhost:8000`
+## Структура сервісів (Local)
 
-## Mobile Integration
-For mobile app developers, see detailed documentation in [mobile_api_docs/](mobile_api_docs/):
-- **Base URL**: Use your local machine's IP (e.g., `http://192.168.x.x:8000`).
-- **Authorization**: Include `Authorization: Bearer <token>` header in requests.
+- **Gateway** (Порт 8000): Основна точка входу. Виконує роль проксі та керує авторизацією.
+- **Frontend** (Порт 8008): Відповідає за відображення HTML-шаблонів та статичних файлів.
+- **Auth** (Порт 8005): Керування користувачами, автентифікація (JWT-токени) та права доступу.
+- **Orders** (Порт 8001): Обробка замовлень та розрахунок вартості.
+- **Notification** (Порт 8004): Відправка Email через SMTP та системні сповіщення.
+- **Admin** (Порт 8006): Панель керування замовленнями для адміністраторів.
+- **AI** (Порт 8007): Інтелектуальний чат-бот для підтримки користувачів.
+
+## Управління Базою Даних
+
+Усі бази даних (SQLite) централізовано зберігаються в папці `data/`:
+- `auth.db`: Користувачі та ролі.
+- `orders.db`: Деталі замовлень.
+- `notification.db`: Журнал сповіщень.
+
+## Права доступу
+
+Для отримання прав адміністратора необхідно змінити роль користувача в `auth.db`.
+Адміністратор має доступ до `http://localhost:8000/admin_page`.

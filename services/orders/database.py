@@ -33,17 +33,24 @@ def check_and_migrate():
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
-        # Check/Add color
-        try:
-            cursor.execute("ALTER TABLE orders ADD COLUMN color VARCHAR")
-        except sqlite3.OperationalError:
-            pass # Already exists
-            
-        # Check/Add size
-        try:
-            cursor.execute("ALTER TABLE orders ADD COLUMN size VARCHAR")
-        except sqlite3.OperationalError:
-            pass # Already exists
+        # Check/Add new columns
+        columns_to_add = [
+            ("color", "VARCHAR"),
+            ("size", "VARCHAR"),
+            ("price", "FLOAT"),
+            ("width", "FLOAT"),
+            ("length", "FLOAT"),
+            ("height", "FLOAT"),
+            ("material", "VARCHAR"),
+            ("infill", "FLOAT"),
+            ("real_weight", "FLOAT")
+        ]
+        
+        for col_name, col_type in columns_to_add:
+            try:
+                cursor.execute(f"ALTER TABLE orders ADD COLUMN {col_name} {col_type}")
+            except sqlite3.OperationalError:
+                pass # Already exists
 
         conn.commit()
         conn.close()

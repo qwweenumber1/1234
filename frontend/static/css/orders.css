@@ -12,31 +12,20 @@
 
     form {
         background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 20px;
     }
 
     input,
     button {
-        padding: 10px;
+        padding: 12px;
         border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    button {
-        background: #a3d392;
-        color: white;
-        border: none;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    button:hover {
-        background: #85b870;
+        border-radius: 8px;
+        font-family: inherit;
     }
 
     ul {
@@ -46,45 +35,53 @@
 
     li {
         background: white;
-        margin: 10px 0;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin: 15px 0;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border: 1px solid #f1f1f1;
     }
 
     .order-info {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 8px;
     }
 
     .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
         font-size: 0.9em;
         color: #666;
+        align-items: center;
     }
 
     .badge {
-        background: #eee;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.8em;
-        margin-right: 5px;
+        background: #f1f1f1;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        color: #444;
     }
 
     .status-badge {
         font-weight: bold;
-        padding: 2px 6px;
-        border-radius: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
         color: white;
-        font-size: 0.8em;
-        margin-right: 5px;
+        font-size: 0.85em;
     }
 
     .status-new {
         background: #a3d392;
+    }
+
+    .status-pending {
+        background: #6c757d;
     }
 
     .status-inprogress {
@@ -108,7 +105,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
         z-index: 1000;
         align-items: center;
         justify-content: center;
@@ -123,12 +121,12 @@
 
     .modal-box {
         background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        padding: 35px;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         text-align: center;
-        max-width: 90%;
-        width: 350px;
+        max-width: 95%;
+        width: 400px;
         transform: translateY(-20px);
         transition: transform 0.3s ease;
     }
@@ -140,26 +138,27 @@
     .modal-actions {
         display: flex;
         justify-content: center;
-        gap: 10px;
-        margin-top: 20px;
+        gap: 15px;
+        margin-top: 30px;
     }
 
     .modal-btn {
-        padding: 10px 20px;
+        padding: 12px 25px;
         border: none;
-        border-radius: 6px;
+        border-radius: 12px;
         cursor: pointer;
         font-weight: bold;
-        font-family: inherit;
+        font-size: 1em;
+        transition: all 0.2s;
     }
 
     .modal-btn.cancel {
-        background: #e0e0e0;
-        color: #333;
+        background: #f1f5f9;
+        color: #475569;
     }
 
     .modal-btn.cancel:hover {
-        background: #d0d0d0;
+        background: #e2e8f0;
     }
 
     .modal-btn.confirm {
@@ -169,4 +168,187 @@
 
     .modal-btn.confirm:hover {
         background: #c82333;
+    }
+
+    /* Selection Chips */
+    .selection-group {
+        margin-bottom: 5px;
+    }
+
+    .group-label {
+        display: block;
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: #2d3436;
+        font-size: 1.1em;
+    }
+
+    .chip-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 12px;
+    }
+
+    .chip-grid input {
+        display: none;
+    }
+
+    .chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 10px;
+        background: #ffffff;
+        border: 2px solid #edeff2;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 0.95em;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .chip span {
+        font-size: 0.75em;
+        color: #a0a0a0;
+        margin-top: 5px;
+        font-weight: 400;
+    }
+
+    .chip-grid input:checked+.chip {
+        background: #f0fdf4;
+        border-color: #4b8f3f;
+        color: #166534;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(75, 143, 63, 0.2);
+    }
+
+    .color-chip {
+        height: 50px;
+        background: var(--bg);
+        color: var(--fg);
+        border: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .chip-grid.colors input:checked+.color-chip {
+        border-color: #4b8f3f;
+        box-shadow: 0 0 0 3px #fff, 0 0 0 5px #4b8f3f;
+    }
+
+    /* Confirmation Modal Styling */
+    .confirmation-box {
+        width: 500px;
+        text-align: left;
+    }
+
+    .order-summary {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-item span {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .summary-item strong {
+        color: #1e293b;
+    }
+
+    .price-prediction {
+        text-align: center;
+        margin: 25px 0;
+        padding: 25px;
+        background: #ecfdf5;
+        border-radius: 24px;
+        color: #065f46;
+        border: 1px solid #d1fae5;
+    }
+
+    .price-prediction span {
+        font-size: 1.1em;
+        opacity: 0.8;
+    }
+
+    .price-prediction strong {
+        font-size: 2.8em;
+        display: block;
+        line-height: 1;
+        margin-top: 10px;
+    }
+
+    .confirm-action {
+        background: #4b8f3f !important;
+        color: white !important;
+        flex: 1.5;
+    }
+
+    /* Input Grid */
+    .form-row {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .input-wrapper {
+        flex: 1;
+        min-width: 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .input-wrapper label {
+        font-size: 0.85em;
+        color: #64748b;
+        font-weight: 500;
+        margin-left: 2px;
+    }
+
+    .primary-btn {
+        background: #4b8f3f;
+        color: white;
+        padding: 18px;
+        font-size: 1.15em;
+        border-radius: 16px;
+        margin-top: 10px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s;
+        font-weight: bold;
+    }
+
+    .primary-btn:hover {
+        background: #3d7532;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .price-badge {
+        font-weight: bold;
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .material-badge {
+        font-weight: bold;
+    }
+
+    .status-badge {
+        font-weight: bold;
     }

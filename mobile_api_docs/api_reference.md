@@ -55,16 +55,33 @@
 - **Format**: `Multipart Form Data`
 - **Fields**: 
   - `description` (string, required)
+  - `material` (string, required: `PLA`, `ABS`, `PETG`, `TPU`, `Nylon`)
   - `color` (string, optional)
-  - `size` (string, optional)
+  - `width` (number, optional: X in mm)
+  - `length` (number, optional: Y in mm)
+  - `height` (number, optional: Z in mm)
+  - `infill` (number, optional: 0-100)
+  - `real_weight` (number, optional: W in g)
   - `file` (file, optional)
 - **Success Response (200 OK)**:
   ```json
   {
     "message": "Order created",
     "order_id": 123,
-    "file_path": "uploads/..."
+    "file_path": "uploads/...",
+    "price": 150,
+    "currency": "UAH"
   }
+  ```
+
+### 4.1. Resend Verification
+- **URL**: `/resend-verification`
+- **Method**: `POST`
+- **Format**: `Form Data`
+- **Fields**: `email`
+- **Success Response (200 OK)**:
+  ```json
+  { "message": "Link resent successfully" }
   ```
 
 ### 5. Get User Orders

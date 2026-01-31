@@ -7,22 +7,15 @@ import time
 import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from .database import engine, SessionLocal, get_db
+# Base.metadata.create_all(bind=engine) # Should be in main or startup
 from .models import Base, Notification
 
-# Database setup
-DATABASE_URL = os.getenv("NOTIFICATION_DATABASE_URL", "sqlite:///./notification.db")
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Notification Service")
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_db() already imported from .database
 
 @app.get("/health")
 def health():
