@@ -50,7 +50,7 @@ async def test_gateway_login_proxy(gateway_client):
         from unittest.mock import AsyncMock
         mock_proxy.side_effect = AsyncMock(return_value=mock_resp)
         
-        response = gateway_client.post("/login", data={"email": "test@example.com", "password": "pass"}, follow_redirects=False)
+        response = gateway_client.post("/login", data={"email": "test@example.com", "password": "pass"}, headers={"Accept": "text/html"}, follow_redirects=False)
         # Gateway redirects on success
         assert response.status_code == 303
         assert response.headers["location"] == "/orders_page"

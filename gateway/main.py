@@ -135,11 +135,12 @@ def health():
 
 # ================= AUTH =================
 @app.post("/register")
-async def register(request: Request):
-    form = await request.form()
+async def register(request: Request, email: str = Form(...), password: str = Form(...)):
+    # form = await request.form() # No longer needed as we have specific params
     base_url = str(request.base_url).rstrip('/')
-
-    resp = await proxy_request("auth", "/register", request, method="POST", data=form)
+    
+    data = {"email": email, "password": password}
+    resp = await proxy_request("auth", "/register", request, method="POST", data=data)
     if isinstance(resp, JSONResponse): return resp
     if resp.status_code != 200:
         detail = "Помилка реєстрації"
@@ -218,9 +219,13 @@ async def verify_email(token: str, request: Request):
     return HTMLResponse(f"<h1>{detail}</h1>", status_code=400)
 
 @app.post("/login")
-async def login(request: Request):
-    form = await request.form()
-    resp = await proxy_request("auth", "/login", request, method="POST", data=form)
+async def login(request: Request, password: str = Form(...), email: str = Form(None), username: str = Form(None)):
+    # form = await request.form()
+    data = {"password": password}
+    if email: data["email"] = email
+    if username: data["username"] = username
+
+    resp = await proxy_request("auth", "/login", request, method="POST", data=data)
     if isinstance(resp, JSONResponse): return resp
     if resp.status_code != 200:
         # If client explicitly asks for JSON, or doesn't explicitly ask for HTML
@@ -272,9 +277,9 @@ async def resend_verification(request: Request):
     return JSONResponse({"message": "Link resent successfully"})
 
 @app.post("/ai/chat")
-async def ai_chat(request: Request):
-    form = await request.form()
-    resp = await proxy_request("ai", "/chat", request, method="POST", data=form)
+async def ai_chat(request: Request, message: str = Form(...)):
+    data = {"message": message}
+    resp = await proxy_request("ai", "/chat", request, method="POST", data=data)
     if isinstance(resp, JSONResponse): return resp
     return JSONResponse(resp.json(), status_code=resp.status_code)
 
