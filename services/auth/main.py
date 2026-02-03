@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from .database import engine, SessionLocal
 from .models import Base, User
 from .crud import get_user_by_email, create_user
-from .security import verify_password, hash_password, create_access_token, decode_access_token
+from .security import verify_password, hash_password, create_access_token, decode_access_token, create_refresh_token, decode_refresh_token
 
 # ... Инициализация ---
 def run_migrations():
@@ -68,13 +68,15 @@ def register(email: str = Form(...), password: str = Form(...), db: Session = De
     verification_token = str(uuid.uuid4())
     user = create_user(db, email, hashed, verification_token=verification_token)
 
-    # создаём токен сразу после регистрации
-    token = create_access_token({"sub": user.email, "role": user.role})
+    # создаём токены сразу после регистрации
+    access_token = create_access_token({"sub": user.email, "role": user.role})
+    refresh_token = create_refresh_token({"sub": user.email})
 
     return JSONResponse(
         content={
             "message": "Registration successful. Please verify your email.",
-            "access_token": token,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "verification_token": verification_token,
             "user": {"email": user.email, "role": user.role, "is_verified": user.is_verified}
@@ -147,17 +149,23 @@ def verify(token: str, db: Session = Depends(get_db)):
 
 # --- Логин ---
 @app.post("/login")
-def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = get_user_by_email(db, email)
+def login(email: str = Form(None), username: str = Form(None), password: str = Form(...), db: Session = Depends(get_db)):
+    login_id = email or username
+    if not login_id:
+        raise HTTPException(status_code=422, detail="Email or username is required")
+    
+    user = get_user_by_email(db, login_id)
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"sub": user.email, "role": user.role})
+    access_token = create_access_token({"sub": user.email, "role": user.role})
+    refresh_token = create_refresh_token({"sub": user.email})
 
     return JSONResponse(
         content={
             "message": "Login successful",
-            "access_token": token,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "bearer",
             "user": {"email": user.email, "role": user.role, "is_verified": user.is_verified}
         }
@@ -181,10 +189,35 @@ def me(access_token: str = Cookie(None), db: Session = Depends(get_db)):
     return {"email": user.email, "role": user.role, "is_verified": user.is_verified}
 
 
+@app.post("/refresh")
+def refresh(refresh_token: str = Cookie(None), db: Session = Depends(get_db)):
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    payload = decode_refresh_token(refresh_token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    user = get_user_by_email(db, payload.get("sub"))
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    new_access_token = create_access_token({"sub": user.email, "role": user.role})
+    new_refresh_token = create_refresh_token({"sub": user.email})
+
+    return JSONResponse(
+        content={
+            "access_token": new_access_token,
+            "refresh_token": new_refresh_token
+        }
+    )
+
+
 @app.post("/logout")
 def logout():
     response = JSONResponse(content={"message": "Logged out successfully"})
     response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
     return response
 
 

@@ -13,9 +13,11 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 # JWT
-SECRET_KEY = os.getenv("SECRET_KEY", "YOUR_SECRET_KEY_HERE")  # ⚠️ менять на свой в prod
+SECRET_KEY = os.getenv("SECRET_KEY")
+REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 def create_access_token(data: dict, expires_delta: int = ACCESS_TOKEN_EXPIRE_MINUTES):
     to_encode = data.copy()
@@ -26,6 +28,19 @@ def create_access_token(data: dict, expires_delta: int = ACCESS_TOKEN_EXPIRE_MIN
 def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+def create_refresh_token(data: dict, expires_delta: int = REFRESH_TOKEN_EXPIRE_DAYS):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=expires_delta)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_refresh_token(token: str):
+    try:
+        payload = jwt.decode(token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError:
         return None

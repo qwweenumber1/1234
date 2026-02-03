@@ -1,8 +1,12 @@
 import pytest
 import os
+import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
+
+# Add project root to sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Mock environment variables for testing
 DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "db")
@@ -11,6 +15,7 @@ os.makedirs(DB_DIR, exist_ok=True)
 os.environ["AUTH_DATABASE_URL"] = f"sqlite:///{os.path.join(DB_DIR, 'test_auth.db')}"
 os.environ["ORDERS_DATABASE_URL"] = f"sqlite:///{os.path.join(DB_DIR, 'test_orders.db')}"
 os.environ["SECRET_KEY"] = "test_secret_key"
+os.environ["REFRESH_SECRET_KEY"] = "test_refresh_key"
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_dbs():

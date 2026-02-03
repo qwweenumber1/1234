@@ -24,8 +24,8 @@ def health():
 # --- SMTP Config ---
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
-SMTP_USER = os.getenv("SMTP_USER", "3dsmartservices@gmail.com")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "bsky kbpc uhjq ssxv")
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 class CircuitBreaker:
     def __init__(self):

@@ -16,7 +16,9 @@ app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static"))
 templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 
 def get_html(name: str, request: Request):
-    return templates.TemplateResponse(name, {"request": request})
+    # Check if the request is an AJAX request (for SPA)
+    is_spa = request.headers.get("X-SPA") == "true" or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    return templates.TemplateResponse(name, {"request": request, "is_spa": is_spa})
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request): return get_html("index.html", request)

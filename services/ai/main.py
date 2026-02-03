@@ -11,10 +11,10 @@ def health():
     return {"status": "ok", "service": "ai"}
 
 # --- Amarsia Config ---
-# I'm using the Standard API (Runner) as it is the most stable and reliable for this type of integration.
-AMARSIA_API_KEY = os.getenv("AMARSIA_API_KEY", "TGcj37gy64RMm-AX3_X1u5oRYmabfimrnyeKeY5YUOc")
+# We use the Standard API (Runner) as it is the most stable and reliable for this type of integration.
+AMARSIA_API_KEY = os.getenv("AMARSIA_API_KEY")
 # Вставте ваш Deployment ID з кабінету Amarsia сюди
-AMARSIA_DEPLOYMENT_ID = os.getenv("AMARSIA_DEPLOYMENT_ID", "9f23919b-ce07-421a-a2d1-0af61e2816e4")
+AMARSIA_DEPLOYMENT_ID = os.getenv("AMARSIA_DEPLOYMENT_ID")
 BASE_URL = "https://api.amarsia.com/v1"
 
 SYSTEM_PROMPT = """

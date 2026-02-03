@@ -36,22 +36,43 @@ async def proxy_request(service: str, path: str, request: Request, method: str =
 
     if token:
         cookies["access_token"] = token
+    
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token:
+        cookies["refresh_token"] = refresh_token
 
-    timeout = httpx.Timeout(30.0, connect=10.0)
+    timeout = httpx.Timeout(60.0, connect=15.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
+            # Prepare files if any
+            httpx_files = None
+            if files:
+                httpx_files = {}
+                for key, val in files.items():
+                    if isinstance(val, tuple) and len(val) >= 2:
+                        # (filename, fileobj, content_type)
+                        httpx_files[key] = val
+                    else:
+                        httpx_files[key] = val
+
             resp = await client.request(
                 method, 
                 url, 
                 data=data, 
-                files=files, 
+                files=httpx_files, 
                 cookies=cookies, 
                 params=params,
-                headers={k: v for k, v in request.headers.items() if k.lower() not in ["host", "content-length"]}
+                headers={k: v for k, v in request.headers.items() if k.lower() not in ["host", "content-length", "content-type"]}
             )
             return resp
         except httpx.RequestError as e:
             return JSONResponse({"detail": f"Request error: {str(e)}"}, status_code=503)
+        finally:
+            # Ensure all file objects are closed
+            if files:
+                for val in files.values():
+                    if isinstance(val, tuple) and len(val) > 1 and hasattr(val[1], 'close'):
+                        val[1].close()
 
 # ================= FRONTEND PROXY =================
 @app.get("/static/{path:path}")
@@ -90,6 +111,24 @@ async def registration_success(request: Request):
     if isinstance(resp, JSONResponse): return resp
     return HTMLResponse(content=resp.text, status_code=resp.status_code)
 
+@app.get("/register_error", response_class=HTMLResponse)
+async def register_error(request: Request):
+    resp = await proxy_request("frontend", "/register_error", request)
+    if isinstance(resp, JSONResponse): return resp
+    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+
+@app.get("/login_error", response_class=HTMLResponse)
+async def login_error(request: Request):
+    resp = await proxy_request("frontend", "/login_error", request)
+    if isinstance(resp, JSONResponse): return resp
+    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon(request: Request):
+    resp = await proxy_request("frontend", "/static/favicon.ico", request)
+    if isinstance(resp, JSONResponse): return resp
+    return HTMLResponse(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "gateway"}
@@ -108,11 +147,18 @@ async def register(request: Request):
             detail = resp.json().get("detail", detail)
         except Exception:
             detail = resp.text
+        
+        # If client explicitly asks for JSON, or doesn't explicitly ask for HTML
+        accept_header = request.headers.get("accept", "").lower()
+        if "application/json" in accept_header or "text/html" not in accept_header:
+            return JSONResponse({"detail": detail}, status_code=resp.status_code)
+
         from urllib.parse import quote
         return RedirectResponse(f"/register_error?detail={quote(detail)}", status_code=303)
     
     auth_data = resp.json()
     token = auth_data["access_token"]
+    refresh_token = auth_data.get("refresh_token")
     v_token = auth_data.get("verification_token")
     email = auth_data["user"]["email"]
 
@@ -122,8 +168,25 @@ async def register(request: Request):
                              data={"email": email, "token": v_token, "base_url": base_url}, 
                              timeout=10.0)
 
+    response_json = {
+        "message": "Registration successful. Please verify your email.",
+        "access_token": token,
+        "refresh_token": refresh_token,
+        "verification_token": v_token,
+        "email": email
+    }
+
+    # If it's an API call (not expecting HTML), return JSON
+    # If client explicitly asks for JSON, or doesn't explicitly ask for HTML
+    accept_header = request.headers.get("accept", "").lower()
+    if "application/json" in accept_header or "text/html" not in accept_header:
+        # Include token and basic info
+        return JSONResponse(response_json)
+
     response = RedirectResponse("/registration_success", status_code=303)
     response.set_cookie("access_token", token, httponly=True, samesite="lax")
+    if refresh_token:
+        response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="lax", max_age=7*24*3600)
     return response
 
 
@@ -139,6 +202,11 @@ async def handle_contacts(request: Request):
 async def verify_email(token: str, request: Request):
     resp = await proxy_request("auth", f"/verify/{token}", request)
     if not isinstance(resp, JSONResponse) and resp.status_code == 200:
+        # If it's an API call (not expecting HTML), return JSON
+        accept_header = request.headers.get("accept", "")
+        if "text/html" not in accept_header:
+            return JSONResponse(resp.json())
+
         resp_f = await proxy_request("frontend", f"/verify/{token}", request)
         if isinstance(resp_f, JSONResponse): return resp_f
         return HTMLResponse(content=resp_f.text, status_code=resp_f.status_code)
@@ -155,13 +223,31 @@ async def login(request: Request):
     resp = await proxy_request("auth", "/login", request, method="POST", data=form)
     if isinstance(resp, JSONResponse): return resp
     if resp.status_code != 200:
+        # If client explicitly asks for JSON, or doesn't explicitly ask for HTML
+        accept_header = request.headers.get("accept", "").lower()
+        if "application/json" in accept_header or "text/html" not in accept_header:
+            try:
+                return JSONResponse(resp.json(), status_code=resp.status_code)
+            except:
+                return JSONResponse({"detail": resp.text}, status_code=resp.status_code)
+
         if resp.status_code == 401:
             return RedirectResponse("/login_error", status_code=303)
         return JSONResponse(resp.json(), resp.status_code)
     
-    token = resp.json()["access_token"]
+    auth_data = resp.json()
+    token = auth_data["access_token"]
+    refresh_token = auth_data.get("refresh_token")
+    
+    # If client explicitly asks for JSON, or doesn't explicitly ask for HTML
+    accept_header = request.headers.get("accept", "").lower()
+    if "application/json" in accept_header or "text/html" not in accept_header:
+        return JSONResponse(auth_data)
+
     response = RedirectResponse("/orders_page", status_code=303)
     response.set_cookie("access_token", token, httponly=True, samesite="lax")
+    if refresh_token:
+        response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="lax", max_age=7*24*3600)
     return response
 
 @app.post("/resend-verification")
@@ -198,10 +284,27 @@ async def me(request: Request):
     if isinstance(resp, JSONResponse): return resp
     return JSONResponse(resp.json(), status_code=resp.status_code)
 
+@app.post("/refresh")
+async def refresh(request: Request):
+    resp = await proxy_request("auth", "/refresh", request, method="POST")
+    if isinstance(resp, JSONResponse): return resp
+    if resp.status_code != 200:
+        return JSONResponse(resp.json(), resp.status_code)
+    
+    data = resp.json()
+    access_token = data["access_token"]
+    refresh_token = data["refresh_token"]
+    
+    response = JSONResponse({"status": "refreshed"})
+    response.set_cookie("access_token", access_token, httponly=True, samesite="lax")
+    response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="lax", max_age=7*24*3600)
+    return response
+
 @app.post("/logout")
 async def logout():
     response = JSONResponse({"message": "Logged out"})
     response.delete_cookie("access_token", path="/", domain=None)
+    response.delete_cookie("refresh_token", path="/", domain=None)
     return response
 
 # ================= ORDERS =================

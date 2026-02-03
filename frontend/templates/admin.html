@@ -1,272 +1,53 @@
-<!DOCTYPE html>
-<html lang="uk">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Панель адміністратора - Smart 3D</title>
-    <link rel="stylesheet" href="/static/css/index.css?v=5">
-    <link rel="stylesheet" href="/static/css/admin.css?v=5">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap&subset=cyrillic"
-        rel="stylesheet">
-    <link rel="icon" href="/static/favicon.ico">
-</head>
+{% block title %}Панель адміністратора - Smart 3D{% endblock %}
 
-<body style="margin: 0;">
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/admin.css?v=6">
+{% endblock %}
 
-    <header class="top-menu">
-        <div class="menu-left">
-            <a href="/" class="menu-logo" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
-                Smart3D
-            </a>
-        </div>
+{% block content %}
+<main class="admin-content" style="min-height: 60vh;">
+    <h1>Панель адміністратора</h1>
 
-        <nav class="menu-right">
-            <a href="/contacts">Зв'язок</a>
-            <a href="/">Iнформацiя</a>
-            <a href="#" onclick="handleOrdersClick()">Замовлення</a>
-            <a href="/login_page" id="authLink">Вхід</a>
-        </nav>
-        <script>
-            async function handleAuth() {
-                try {
-                    const res = await fetch("/me", { credentials: "include" });
-                    const authLink = document.getElementById("authLink");
-                    if (res.ok) {
-                        authLink.textContent = "Вихід";
-                        authLink.href = "#";
-                        authLink.onclick = async (e) => {
-                            e.preventDefault();
-                            document.cookie = "access_token=; Max-Age=0; path=/";
-                            window.location.href = "/"; // Redirect to home on logout
-                        };
-                    }
-                } catch (e) { console.error(e); }
-            }
-
-            async function handleOrdersClick() {
-                try {
-                    const res = await fetch("/me", { credentials: "include" });
-                    if (res.ok) window.location.href = "/orders_page";
-                    else window.location.href = "/login_page";
-                } catch { window.location.href = "/login_page"; }
-            }
-            handleAuth();
-        </script>
-    </header>
-
-    <main class="admin-content" style="min-height: 60vh;">
-        <h1>Панель адміністратора</h1>
-
-        <div class="controls">
-            <input type="text" id="emailSearch" placeholder="Пошук за Email...">
-            <button onclick="loadOrders()">Знайти</button>
-            <button onclick="window.location.href='/orders_page'" style="float:right; background:#6c757d;">До моїх
-                замовлень</button>
-        </div>
-
-        <ul id="ordersList"></ul>
-    </main>
-
-    <!-- Modal for Delete Confirmation -->
-    <div id="deleteModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-top: 0;">Видалити замовлення?</h3>
-            <p>Цю дію неможливо відмінити.</p>
-            <div class="modal-actions">
-                <button id="cancelDeleteBtn" class="modal-btn cancel">Ні, залишити</button>
-                <button id="confirmDeleteBtn" class="modal-btn confirm">Так, видалити</button>
-            </div>
-        </div>
+    <div class="controls">
+        <input type="text" id="emailSearch" placeholder="Пошук за Email...">
+        <button id="searchBtn">Знайти</button>
+        <button
+            onclick="if(window.appRouter) window.appRouter.navigateTo('/orders_page'); else window.location.href='/orders_page';"
+            style="float:right; background:#6c757d;">
+            До моїх замовлень
+        </button>
     </div>
 
-    <!-- Modal for Status Update Confirmation -->
-    <div id="updateModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-top: 0;">Оновити статус?</h3>
-            <p>Ви впевнені, що хочете змінити статус замовлення?</p>
-            <div class="modal-actions">
-                <button id="cancelUpdateBtn" class="modal-btn cancel">Скасувати</button>
-                <button id="confirmUpdateBtn" class="modal-btn confirm-update">Так, оновити</button>
-            </div>
+    <ul id="ordersList"></ul>
+</main>
+
+<!-- Modal for Delete Confirmation -->
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top: 0;">Видалити замовлення?</h3>
+        <p>Цю дію неможливо відмінити.</p>
+        <div class="modal-actions">
+            <button id="cancelDeleteBtn" class="modal-btn cancel">Ні, залишити</button>
+            <button id="confirmDeleteBtn" class="modal-btn confirm">Так, видалити</button>
         </div>
     </div>
+</div>
 
-    <footer class="footer">
-        <div class="footer-grid">
-            <!-- 1 -->
-            <div>
-                <div class="footer-title"><a href="/" style="color: inherit; text-decoration: none;">Smart3D</a></div>
-                <div class="footer-text">
-                    3D-Studio — команда професіоналів, відданих своїй справі.
-                    Наш пріоритет — висока якість і максимальний результат
-                    у кожному проєкті. Пропонуємо доступний 3D-друк
-                    з швидкою доставкою по всій Україні.
-                </div>
-                <div class="footer-socials">
-                    <img src="/static/icons/facebook.svg" alt="Facebook">
-                    <img src="/static/icons/instagram.svg" alt="Instagram">
-                    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank"><img
-                            src="/static/icons/youtube.svg" alt="YouTube"></a>
-                </div>
-            </div>
-            <!-- 2 -->
-            <div>
-                <div class="footer-title">Інформація</div>
-                <div class="footer-text">
-                    3D друк SLA на замовлення — високоточний друк для складних моделей<br><br>
-                    3D друк FDM на замовлення — точні та міцні деталі за вашою 3D моделлю<br><br>
-                    Кольоровий 3D друк FDM — багатокольорові моделі на замовлення
-                </div>
-            </div>
-            <!-- 3 -->
-            <div>
-                <div class="footer-title">Зв’язатися з нами</div>
-                <div class="footer-contact">
-                    <img src="/static/icons/phone.svg" alt="">
-                    <span><a href="tel:+380672659865" style="color: inherit; text-decoration: none;">+38 (067) 265 98
-                            65</a></span>
-                </div>
-                <div class="footer-contact">
-                    <img src="/static/icons/phone.svg" alt="">
-                    <span><a href="tel:+380662004790" style="color: inherit; text-decoration: none;">+38 (066) 200 47
-                            90</a></span>
-                    <a href="https://wa.me/380662004790" style="margin-left: 10px;"><img
-                            src="/static/icons/whatsapp_color.png" width="24" title="WhatsApp"></a>
-                    <a href="https://t.me/+380662004790" style="margin-left: 8px;"><img
-                            src="/static/icons/telegram_color.png" width="24" title="Telegram"></a>
-                </div>
-                <div class="footer-contact">
-                    <img src="/static/icons/mail.svg" alt="">
-                    <span>info@smart3d.com.ua</span>
-                </div>
-                <div class="footer-contact">
-                    <img src="/static/icons/mail.svg" alt="">
-                    <span>smart-3D.printing@gmail.com</span>
-                </div>
-            </div>
+<!-- Modal for Status Update Confirmation -->
+<div id="updateModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top: 0;">Оновити статус?</h3>
+        <p>Ви впевнені, що хочете змінити статус замовлення?</p>
+        <div class="modal-actions">
+            <button id="cancelUpdateBtn" class="modal-btn cancel">Скасувати</button>
+            <button id="confirmUpdateBtn" class="modal-btn confirm-update">Так, оновити</button>
         </div>
-    </footer>
+    </div>
+</div>
+{% endblock %}
 
-    <script>
-        async function loadOrders() {
-            const email = document.getElementById("emailSearch").value;
-            const res = await fetch(`/admin?email=${email}`, { credentials: "include" });
-            const data = await res.json();
-            const orders = data.orders || [];
-            const list = document.getElementById("ordersList");
-            if (!list) return;
-            list.innerHTML = "";
-            orders.forEach(o => {
-                const li = document.createElement("li");
-
-                let dateStr = "Невідома дата";
-                if (o.created_at) {
-                    const d = new Date(o.created_at);
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const year = d.getFullYear();
-                    const hours = String(d.getHours()).padStart(2, '0');
-                    const mins = String(d.getMinutes()).padStart(2, '0');
-                    dateStr = `${day}.${month}.${year} ${hours}:${mins}`;
-                }
-
-                const statusMap = {
-                    "new": "Новий",
-                    "in progress": "В роботі",
-                    "done": "Готово",
-                    "canceled": "Скасовано"
-                };
-                let statusColor = "status-new";
-                if (o.status === "in progress") statusColor = "status-inprogress";
-                if (o.status === "done") statusColor = "status-done";
-                if (o.status === "canceled") statusColor = "status-canceled";
-
-                let statusTitle = statusMap[o.status] || o.status;
-
-                li.innerHTML = `
-                    <div class="order-info">
-                        <div><strong style="color: #4b8f3f; font-size: 1.25em;">Замовлення #${o.id}</strong> від <span style="color: #666;">${o.user_email}</span></div>
-                        <div style="font-size: 1.1em; margin: 8px 0; font-weight: 500;">${o.description}</div>
-                        <div class="meta">
-                            <span class="status-Badge ${statusColor}">${statusTitle}</span>
-                            ${o.color ? `<span class="badge">Колір: ${o.color}</span>` : ''}
-                            ${o.size ? `<span class="badge">Розмір: ${o.size}</span>` : ''}
-                            <span>${dateStr}</span>
-                        </div>
-                        ${o.file_path ? `<div style="margin-top:10px;"><a href="/${o.file_path}" target="_blank" style="color: #4b8f3f; font-weight: bold; text-decoration: none;">Переглянути файл</a></div>` : ''}
-                    </div>
-                    
-                    <div class="actions" style="margin-top: 15px;">
-                        <select id="status-${o.id}" style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
-                            <option value="new" ${o.status === 'new' ? 'selected' : ''}>Новий</option>
-                            <option value="in progress" ${o.status === 'in progress' ? 'selected' : ''}>В роботі</option>
-                            <option value="done" ${o.status === 'done' ? 'selected' : ''}>Готово</option>
-                            <option value="canceled" ${o.status === 'canceled' ? 'selected' : ''}>Скасовано</option>
-                        </select>
-                        <button onclick="requestUpdate(${o.id})" style="background: #a3d392; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Оновити</button>
-                        <button class="delete-btn" onclick="requestDelete(${o.id})" style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Видалити</button>
-                    </div>
-                `;
-                list.appendChild(li);
-            });
-        }
-
-        let currentOrderId = null;
-        const deleteModal = document.getElementById("deleteModal");
-        const updateModal = document.getElementById("updateModal");
-
-        function requestDelete(id) {
-            currentOrderId = id;
-            deleteModal.classList.add("active");
-        }
-
-        function requestUpdate(id) {
-            currentOrderId = id;
-            updateModal.classList.add("active");
-        }
-
-        function closeModals() {
-            currentOrderId = null;
-            deleteModal.classList.remove("active");
-            updateModal.classList.remove("active");
-        }
-
-        document.getElementById("cancelDeleteBtn").onclick = closeModals;
-        document.getElementById("cancelUpdateBtn").onclick = closeModals;
-
-        document.getElementById("confirmDeleteBtn").onclick = async () => {
-            if (!currentOrderId) return;
-            const res = await fetch(`/admin/delete_order/${currentOrderId}`, { method: "DELETE", credentials: "include" });
-            if (res.ok) {
-                loadOrders();
-            } else {
-                alert("Помилка видалення");
-            }
-            closeModals();
-        };
-
-        document.getElementById("confirmUpdateBtn").onclick = async () => {
-            if (!currentOrderId) return;
-            const status = document.getElementById(`status-${currentOrderId}`).value;
-            const formData = new FormData();
-            formData.append("status", status);
-            const res = await fetch(`/admin/update_status/${currentOrderId}`, { method: "POST", body: formData, credentials: "include" });
-            if (res.ok) {
-                loadOrders();
-            } else {
-                alert("Не вдалося оновити статус");
-            }
-            closeModals();
-        };
-
-        window.onclick = (e) => {
-            if (e.target === deleteModal || e.target === updateModal) closeModals();
-        };
-
-        loadOrders();
-    </script>
-</body>
-
-</html>
+{% block scripts %}
+<script src="/static/js/admin.js?v=2"></script>
+{% endblock %}

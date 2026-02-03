@@ -10,3 +10,4 @@ google-genai
 httpx
 pytest
 pytest-asyncio
+python-dotenv

@@ -58,49 +58,12 @@ async def create_order(
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Заповнення повинно бути від 0 до 100%")
 
-    # PRICE = max(W, (X×Y×Z/1000)×ρ) × P × K(I)
-    # ρ = 1.24
-    rho = 1.24
-    
-    # Defaults in case fields are missing
-    X = width or 0
-    Y = length or 0
-    Z = height or 0
-    W = real_weight or 0
-    I = infill or 20 # Default infill 20%
-    
-    # Material Pricing (P) - Average Ukraine prices per gram
-    material_prices = {
-        "PLA": 1.2,
-        "ABS": 1.5,
-        "PETG": 1.4,
-        "TPU": 3.0,
-        "Nylon": 4.5,
-        "SLA": 10.0
-    }
-    P = material_prices.get(material, 1.2) # Default to PLA price
-    
-    # Infill Coefficient K(I)
-    K_I = 0.2 + 0.8 * (I / 100)
-    
-    # Volumetric Weight Wv
-    V_cm3 = (X * Y * Z) / 1000
-    Wv = V_cm3 * rho
-    
-    # Base Weight Wb
-    Wb = max(W, Wv)
-    
-    # Final Price
-    calculated_price = Wb * P * K_I
-    
-    # Minimum price check
-    # 200 UAH for PLA, ABS, PETG
-    # 500 UAH for TPU, Nylon, SLA
-    min_price = 200
-    if material in ["TPU", "Nylon", "SLA"]:
-        min_price = 500
-        
-    price = max(min_price, int(calculated_price))
+    from .pricing import calculate_order_price
+    result = calculate_order_price(
+        width=width, length=length, height=height,
+        material=material, infill=infill, real_weight=real_weight
+    )
+    price = result["price"]
 
     order = crud.create_order(
         db, user_email, description, file_path, color, size, price,
@@ -159,27 +122,8 @@ def calculate_price(
     height = float(height) if height else None
     infill = float(infill) if infill else None
     real_weight = float(real_weight) if real_weight else None
-    # Logic for price calculation (consistent with create_order)
-    rho = 1.24
-    X = width or 0
-    Y = length or 0
-    Z = height or 0
-    W = real_weight or 0
-    I = infill or 20
-    
-    material_prices = {
-        "PLA": 1.2, "ABS": 1.5, "PETG": 1.4, "TPU": 3.0, "Nylon": 4.5, "SLA": 10.0
-    }
-    P = material_prices.get(material, 1.2)
-    K_I = 0.2 + 0.8 * (I / 100)
-    V_cm3 = (X * Y * Z) / 1000
-    Wv = V_cm3 * rho
-    Wb = max(W, Wv)
-    calculated_price = Wb * P * K_I
-    
-    min_price = 200
-    if material in ["TPU", "Nylon", "SLA"]:
-        min_price = 500
-        
-    price = max(min_price, int(calculated_price))
-    return {"price": price, "currency": "UAH"}
+    from .pricing import calculate_order_price
+    return calculate_order_price(
+        width=width, length=length, height=height,
+        material=material, infill=infill, real_weight=real_weight
+    )

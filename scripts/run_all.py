@@ -1,7 +1,11 @@
+import os
 import subprocess
 import sys
 import time
-import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration: (name, app_module, port)
 SERVICES = [
