@@ -1,0 +1,833 @@
+﻿openapi: 3.0.2
+info:
+  title: Smart 3D Professionals API
+  version: 1.0.0
+  description: |
+    Comprehensive API for the Smart 3D Professionals ecosystem.
+    
+    ### Authentication
+    The API supports two authentication methods (interchangeable for most endpoints):
+    1. **JWT Bearer Token**: Use the `Authorization: Bearer <token>` header.
+    2. **HTTP-Only Cookies**: The Gateway automatically manages `access_token` and `refresh_token` cookies.
+    
+    ### Rate Limiting
+    Most write operations are rate-limited. Look for the following headers in the response:
+    - `X-RateLimit-Limit`: Maximum requests allowed in the window.
+    - `X-RateLimit-Remaining`: Remaining requests in the current window.
+    - `X-RateLimit-Reset`: Time when the limit resets.
+
+servers:
+  - url: http://localhost:8000
+    description: Development Gateway
+
+tags:
+  - name: Auth
+    description: User registration, login, and session management.
+  - name: Orders
+    description: 3D print order creation and tracking.
+  - name: Admin
+    description: Advanced order management for staff.
+  - name: AI
+    description: Intelligent support bot interactions.
+  - name: Notification
+    description: System alerts and email history.
+  - name: System
+    description: Health checks and proxy status.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          example: "Invalid credentials"
+      required:
+        - detail
+
+    User:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        role:
+          type: string
+          enum: [user, admin]
+          example: "user"
+        is_verified:
+          type: boolean
+          example: true
+      required:
+        - email
+        - role
+        - is_verified
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login successful"
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1..."
+        refresh_token:
+          type: string
+          example: "def456..."
+        token_type:
+          type: string
+          example: "bearer"
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - message
+        - access_token
+        - refresh_token
+        - token_type
+        - user
+
+    RefreshResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "refreshed"
+      required:
+        - status
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Registration successful. Please verify your email."
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        verification_token:
+          type: string
+          example: "abc-123-uuid"
+        email:
+          type: string
+          format: email
+      required:
+        - message
+        - access_token
+        - refresh_token
+        - email
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully"
+      required:
+        - message
+
+    OrderStatus:
+      type: string
+      enum: [pending, processing, completed, canceled, shipped]
+      example: "pending"
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        description:
+          type: string
+          example: "Brackets for drone"
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-02-05T20:00:00Z"
+        file_path:
+          type: string
+          nullable: true
+          example: "uploads/20260205_drone_bracket.stl"
+        material:
+          type: string
+          nullable: true
+          example: "PLA+"
+        color:
+          type: string
+          nullable: true
+          example: "Forest Green"
+        size:
+          type: string
+          nullable: true
+          example: "Small"
+        price:
+          type: number
+          nullable: true
+          example: 450.50
+        width:
+          type: number
+          minimum: 1
+          maximum: 500
+          example: 50.5
+        length:
+          type: number
+          minimum: 1
+          maximum: 500
+          example: 40.0
+        height:
+          type: number
+          minimum: 1
+          maximum: 500
+          example: 25.2
+        infill:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 20
+        real_weight:
+          type: number
+          minimum: 0
+          maximum: 10000
+          example: 15.5
+      required:
+        - id
+        - description
+        - status
+
+    CreateOrderResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Order created"
+        order_id:
+          type: integer
+          example: 101
+        file_path:
+          type: string
+          nullable: true
+        price:
+          type: number
+          example: 450.50
+        currency:
+          type: string
+          example: "UAH"
+      required:
+        - message
+        - order_id
+        - price
+
+    CalculatePriceResponse:
+      type: object
+      properties:
+        price:
+          type: number
+          example: 120.0
+        currency:
+          type: string
+          example: "UAH"
+        parameters:
+          type: object
+          properties:
+            width: { type: number, example: 10.0 }
+            length: { type: number, example: 10.0 }
+            height: { type: number, example: 10.0 }
+            material: { type: string, example: "PLA" }
+            infill: { type: number, example: 15 }
+            real_weight: { type: number, example: 5.0 }
+      required:
+        - price
+
+    OrderListResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+      required:
+        - orders
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        message:
+          type: string
+          example: "Verification email sent"
+        status:
+          type: string
+          enum: [sent, failed, pending]
+          example: "sent"
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - message
+
+    Body_ai_chat_ai_chat_post:
+      properties:
+        message:
+          title: Message
+          type: string
+          example: "How much does PLA cost?"
+      required:
+      - message
+      title: Body_ai_chat_ai_chat_post
+      type: object
+
+    Body_contacts_contacts_post:
+      properties:
+        name:
+          title: Name
+          type: string
+          example: "John Doe"
+        email:
+          title: Email
+          type: string
+          format: email
+          example: "j.doe@example.com"
+        subject:
+          title: Subject
+          type: string
+          example: "Bulk Order Inquiry"
+        message:
+          title: Message
+          type: string
+          example: "I need 1000 units of the following model..."
+      required:
+      - name
+      - email
+      - subject
+      - message
+      title: Body_contacts_contacts_post
+      type: object
+
+    Body_create_order_create_order_post:
+      properties:
+        description:
+          title: Description
+          type: string
+          example: "Car part replacement"
+        file:
+          format: binary
+          title: File
+          description: "Supports .stl, .3mf, .step"
+          type: string
+        color:
+          title: Color
+          type: string
+          example: "Matte Black"
+        size:
+          title: Size
+          type: string
+          example: "Custom"
+        width:
+          type: number
+          minimum: 1
+          maximum: 500
+        length:
+          type: number
+          minimum: 1
+          maximum: 500
+        height:
+          type: number
+          minimum: 1
+          maximum: 500
+        material:
+          title: Material
+          type: string
+          example: "PETG"
+        infill:
+          title: Infill
+          type: string
+          example: "40"
+        real_weight:
+          title: Real Weight
+          type: string
+          example: "250.0"
+      required:
+      - description
+      title: Body_create_order_create_order_post
+      type: object
+
+    Body_update_status_admin_update_status__order_id__post:
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+      required:
+      - status
+      title: Body_update_status_admin_update_status__order_id__post
+      type: object
+
+    Body_login_login_post:
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+          format: email
+        username:
+          title: Username
+          type: string
+        password:
+          title: Password
+          type: string
+          minLength: 6
+      required:
+        - password
+      anyOf:
+        - required: [email]
+        - required: [username]
+      title: Body_login_login_post
+
+    Body_register_register_post:
+      properties:
+        email:
+          title: Email
+          type: string
+          format: email
+        password:
+          title: Password
+          minLength: 6
+      required:
+      - email
+      - password
+      title: Body_register_register_post
+      type: object
+
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+
+paths:
+  /:
+    get:
+      tags: [System]
+      operationId: index__get
+      responses:
+        '200':
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Index Page
+
+  /login:
+    post:
+      tags: [Auth]
+      operationId: login_login_post
+      summary: Authenticate User
+      description: Logs in the user via email/username and password. Sets HTTP-only cookies and returns tokens in JSON.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_login_post'
+        required: true
+      responses:
+        '200':
+          description: Login Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /register:
+    post:
+      tags: [Auth]
+      operationId: register_register_post
+      summary: Create New Account
+      description: Registers a new user. Triggers a verification email.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_register_register_post'
+        required: true
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Bad Request (e.g. email already exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation Error
+
+  /refresh:
+    post:
+      tags: [Auth]
+      operationId: refresh_refresh_post
+      summary: Refresh Access Token
+      description: Uses the `refresh_token` from cookies to issue a new `access_token`.
+      parameters:
+        - in: cookie
+          name: refresh_token
+          schema:
+            type: string
+          required: false
+          description: The HTTP-only refresh token.
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Invalid or missing refresh token
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /logout:
+    post:
+      tags: [Auth]
+      operationId: logout_logout_post
+      summary: Terminate Session
+      description: Clears all authentication cookies.
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /me:
+    get:
+      tags: [Auth]
+      operationId: me_me_get
+      summary: Get Current Profile
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /orders:
+    get:
+      tags: [Orders]
+      operationId: orders_orders_get
+      summary: List User Orders
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+          description: Number of records to return.
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0, minimum: 0 }
+          description: Number of records to skip.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /create_order:
+    post:
+      tags: [Orders]
+      operationId: create_order_create_order_post
+      summary: Submit 3D Print Request
+      description: Create a new order with model file and manufacturing specifications.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_create_order_create_order_post'
+        required: true
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+        '403':
+          description: Unverified user (verification required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /orders/{order_id}:
+    delete:
+      tags: [Orders]
+      operationId: delete_order_orders__order_id__delete
+      summary: Cancel Order
+      parameters:
+      - in: path
+        name: order_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /admin:
+    get:
+      tags: [Admin]
+      operationId: admin_dashboard_admin_get
+      summary: Manage System Orders
+      description: Returns all orders across all users with filtering.
+      parameters:
+        - in: query
+          name: email
+          schema: { type: string, format: email }
+          description: Filter orders by user email.
+        - in: query
+          name: status
+          schema: { $ref: '#/components/schemas/OrderStatus' }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /admin/update_status/{order_id}:
+    post:
+      tags: [Admin]
+      operationId: update_status_admin_update_status__order_id__post
+      summary: Modify Order Status
+      parameters:
+      - in: path
+        name: order_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_update_status_admin_update_status__order_id__post'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /ai/chat:
+    post:
+      tags: [AI]
+      operationId: ai_chat_ai_chat_post
+      summary: Query AI Assistant
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_ai_chat_ai_chat_post'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: "PLA material costs approximately 1.5 UAH per gram."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /calculate_price:
+    get:
+      tags: [Orders]
+      operationId: calculate_price_calculate_price_get
+      summary: Instant Quote
+      description: Estimates the price of a print based on physical parameters.
+      parameters:
+        - in: query
+          name: width
+          schema: { type: number, minimum: 1, maximum: 500 }
+        - in: query
+          name: length
+          schema: { type: number, minimum: 1, maximum: 500 }
+        - in: query
+          name: height
+          schema: { type: number, minimum: 1, maximum: 500 }
+        - in: query
+          name: material
+          schema: { type: string }
+        - in: query
+          name: infill
+          schema: { type: number, minimum: 0, maximum: 100 }
+        - in: query
+          name: real_weight
+          schema: { type: number, minimum: 0, maximum: 10000 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculatePriceResponse'
+    
+  /notifications:
+    get:
+      tags: [Notification]
+      operationId: notifications_notifications_get
+      summary: Recent System Logs
+      description: Returns a history of email notifications and system alerts.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+
+  /resend-verification:
+    post:
+      tags: [Auth]
+      operationId: resend_verification_resend_verification_post
+      summary: Request New Link
+      description: Resends the email verification link. Subject to rate limits.
+      responses:
+        '200':
+          description: Link sent
+        '429':
+          description: Rate limit exceeded (wait 3 minutes)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /verify/{token}:
+    get:
+      tags: [Auth]
+      operationId: verify_email_verify__token__get
+      summary: Activate Account
+      description: Verifies the email address using a UUID link.
+      parameters:
+      - in: path
+        name: token
+        required: true
+        schema:
+          type: string
+          example: "abc-123-token"
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /health:
+    get:
+      tags: [System]
+      operationId: health_health_get
+      summary: Service Status
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "ok" }
+                  service: { type: string, example: "gateway" }

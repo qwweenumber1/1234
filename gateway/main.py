@@ -1,5 +1,7 @@
-from fastapi import FastAPI, Request, UploadFile, Form
+from fastapi import FastAPI, Request, UploadFile, Form, Response
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
@@ -79,55 +81,71 @@ async def proxy_request(service: str, path: str, request: Request, method: str =
 async def proxy_static(path: str, request: Request):
     resp = await proxy_request("frontend", f"/static/{path}", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+    response = Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     resp = await proxy_request("frontend", "/", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/{page}_page", response_class=HTMLResponse)
 async def proxy_pages(page: str, request: Request):
     resp = await proxy_request("frontend", f"/{page}_page", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/info", response_class=HTMLResponse)
 async def info_page(request: Request):
     resp = await proxy_request("frontend", "/info", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/contacts", response_class=HTMLResponse)
 async def contacts_page(request: Request):
     resp = await proxy_request("frontend", "/contacts", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/registration_success", response_class=HTMLResponse)
 async def registration_success(request: Request):
     resp = await proxy_request("frontend", "/registration_success", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/register_error", response_class=HTMLResponse)
 async def register_error(request: Request):
     resp = await proxy_request("frontend", "/register_error", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/login_error", response_class=HTMLResponse)
 async def login_error(request: Request):
     resp = await proxy_request("frontend", "/login_error", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon(request: Request):
     resp = await proxy_request("frontend", "/static/favicon.ico", request)
     if isinstance(resp, JSONResponse): return resp
-    return HTMLResponse(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+    return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
 
 @app.get("/health")
 def health():

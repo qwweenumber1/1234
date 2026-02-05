@@ -38,7 +38,7 @@ def run_services():
 
         print("\n" + "=" * 50)
         print("✅ All services are running!")
-        print("🔗 Gateway is available at: http://localhost:8000")
+        print("🔗 Gateway is available at: http://localhost:8010")
         print("⌨️  Press Ctrl+C to stop all services.")
         print("=" * 50 + "\n")
 

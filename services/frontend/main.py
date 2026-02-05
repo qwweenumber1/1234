@@ -18,7 +18,9 @@ templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 def get_html(name: str, request: Request):
     # Check if the request is an AJAX request (for SPA)
     is_spa = request.headers.get("X-SPA") == "true" or request.headers.get("X-Requested-With") == "XMLHttpRequest"
-    return templates.TemplateResponse(name, {"request": request, "is_spa": is_spa})
+    response = templates.TemplateResponse(name, {"request": request, "is_spa": is_spa})
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request): return get_html("index.html", request)

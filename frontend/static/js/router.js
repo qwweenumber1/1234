@@ -64,6 +64,9 @@ class AppRouter {
                 document.title = titleMatch[1];
             }
 
+            // Handle dynamic CSS loading
+            this.updateDynamicStyles(html);
+
             // Update content
             this.mainContent.innerHTML = html;
             this.mainContent.style.opacity = '1';
@@ -84,6 +87,41 @@ class AppRouter {
             console.error('Routing error:', error);
             this.mainContent.innerHTML = `<div style="padding: 50px; text-align: center;"><h2>Помилка завантаження</h2><p>${error.message}</p></div>`;
             this.mainContent.style.opacity = '1';
+        }
+    }
+
+    /**
+     * Dynamically loads/unloads page-specific CSS files
+     */
+    updateDynamicStyles(html) {
+        console.log('[Router] updateDynamicStyles called');
+
+        // Remove previously loaded dynamic stylesheets
+        const oldDynamicStyles = document.querySelectorAll('link[data-dynamic-css]');
+        console.log('[Router] Removing', oldDynamicStyles.length, 'old dynamic styles');
+        oldDynamicStyles.forEach(link => link.remove());
+
+        // Extract CSS files from SPA-CSS-META comment
+        const metaMatch = html.match(/<!-- SPA-CSS-META: (.*?) -->/);
+        console.log('[Router] SPA-CSS-META match:', metaMatch);
+
+        if (metaMatch && metaMatch[1].trim()) {
+            const cssFiles = metaMatch[1].trim().split(/\s+/);
+            console.log('[Router] CSS files to load:', cssFiles);
+
+            cssFiles.forEach(href => {
+                if (!href) return;
+
+                console.log('[Router] Loading CSS:', href);
+                // Create and append new link element
+                const linkElement = document.createElement('link');
+                linkElement.rel = 'stylesheet';
+                linkElement.href = href;
+                linkElement.setAttribute('data-dynamic-css', 'true');
+                document.head.appendChild(linkElement);
+            });
+        } else {
+            console.log('[Router] No CSS files to load for this page');
         }
     }
 

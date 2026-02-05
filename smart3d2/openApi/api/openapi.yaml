@@ -1,0 +1,634 @@
+openapi: 3.0.2
+info:
+  title: API Gateway
+  version: 0.1.0
+servers:
+- description: API Gateway
+  url: http://127.0.0.1:8010
+paths:
+  /:
+    get:
+      operationId: index__get
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Index
+      x-accepts:
+      - text/html
+  /admin:
+    get:
+      operationId: admin_dashboard_admin_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Admin Dashboard
+      x-accepts:
+      - application/json
+  /admin/delete_order/{order_id}:
+    delete:
+      operationId: admin_delete_order_admin_delete_order__order_id__delete
+      parameters:
+      - explode: false
+        in: path
+        name: order_id
+        required: true
+        schema:
+          title: Order Id
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Admin Delete Order
+      x-accepts:
+      - application/json
+  /admin/update_status/{order_id}:
+    post:
+      operationId: update_status_admin_update_status__order_id__post
+      parameters:
+      - explode: false
+        in: path
+        name: order_id
+        required: true
+        schema:
+          title: Order Id
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Body_update_status_admin_update_status__order_id__post"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Update Status
+      x-content-type: application/x-www-form-urlencoded
+      x-accepts:
+      - application/json
+  /ai/chat:
+    post:
+      operationId: ai_chat_ai_chat_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Body_ai_chat_ai_chat_post"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Ai Chat
+      x-content-type: application/x-www-form-urlencoded
+      x-accepts:
+      - application/json
+  /calculate_price:
+    get:
+      operationId: calculate_price_calculate_price_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Calculate Price
+      x-accepts:
+      - application/json
+  /contacts:
+    get:
+      operationId: contacts_page_contacts_get
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Contacts Page
+      x-accepts:
+      - text/html
+    post:
+      operationId: handle_contacts_contacts_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Body_contacts_contacts_post"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Handle Contacts
+      x-content-type: application/x-www-form-urlencoded
+      x-accepts:
+      - application/json
+  /create_order:
+    post:
+      operationId: create_order_create_order_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Body_create_order_create_order_post"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Create Order
+      x-content-type: multipart/form-data
+      x-accepts:
+      - application/json
+  /health:
+    get:
+      operationId: health_health_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Health
+      x-accepts:
+      - application/json
+  /info:
+    get:
+      operationId: info_page_info_get
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Info Page
+      x-accepts:
+      - text/html
+  /login:
+    post:
+      operationId: login_login_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Body_login_login_post"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Login
+      x-content-type: application/x-www-form-urlencoded
+      x-accepts:
+      - application/json
+  /login_error:
+    get:
+      operationId: login_error_login_error_get
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Login Error
+      x-accepts:
+      - text/html
+  /logout:
+    post:
+      operationId: logout_logout_post
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Logout
+      x-accepts:
+      - application/json
+  /me:
+    get:
+      operationId: me_me_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Me
+      x-accepts:
+      - application/json
+  /notifications:
+    get:
+      operationId: notifications_notifications_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Notifications
+      x-accepts:
+      - application/json
+  /orders:
+    get:
+      operationId: orders_orders_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Orders
+      x-accepts:
+      - application/json
+  /orders/{order_id}:
+    delete:
+      operationId: delete_order_orders__order_id__delete
+      parameters:
+      - explode: false
+        in: path
+        name: order_id
+        required: true
+        schema:
+          title: Order Id
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Delete Order
+      x-accepts:
+      - application/json
+  /refresh:
+    post:
+      operationId: refresh_refresh_post
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Refresh
+      x-accepts:
+      - application/json
+  /register:
+    post:
+      operationId: register_register_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Body_register_register_post"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Register
+      x-content-type: application/x-www-form-urlencoded
+      x-accepts:
+      - application/json
+  /register_error:
+    get:
+      operationId: register_error_register_error_get
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Register Error
+      x-accepts:
+      - text/html
+  /registration_success:
+    get:
+      operationId: registration_success_registration_success_get
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+      summary: Registration Success
+      x-accepts:
+      - text/html
+  /resend-verification:
+    post:
+      operationId: resend_verification_resend_verification_post
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Resend Verification
+      x-accepts:
+      - application/json
+  /static/{path}:
+    get:
+      operationId: proxy_static_static__path__get
+      parameters:
+      - explode: false
+        in: path
+        name: path
+        required: true
+        schema:
+          title: Path
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Proxy Static
+      x-accepts:
+      - application/json
+  /verify/{token}:
+    get:
+      operationId: verify_email_verify__token__get
+      parameters:
+      - explode: false
+        in: path
+        name: token
+        required: true
+        schema:
+          title: Token
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Verify Email
+      x-accepts:
+      - application/json
+  /{page}_page:
+    get:
+      operationId: proxy_pages__page__page_get
+      parameters:
+      - explode: false
+        in: path
+        name: page
+        required: true
+        schema:
+          title: Page
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Proxy Pages
+      x-accepts:
+      - application/json
+      - text/html
+components:
+  schemas:
+    Body_ai_chat_ai_chat_post:
+      properties:
+        message:
+          title: Message
+          type: string
+      required:
+      - message
+      title: Body_ai_chat_ai_chat_post
+      type: object
+    Body_contacts_contacts_post:
+      properties:
+        name:
+          title: Name
+          type: string
+        email:
+          title: Email
+          type: string
+        subject:
+          title: Subject
+          type: string
+        message:
+          title: Message
+          type: string
+      required:
+      - email
+      - message
+      - name
+      - subject
+      title: Body_contacts_contacts_post
+      type: object
+    Body_create_order_create_order_post:
+      properties:
+        description:
+          title: Description
+          type: string
+        file:
+          format: binary
+          title: File
+          type: string
+        color:
+          title: Color
+          type: string
+        size:
+          title: Size
+          type: string
+        width:
+          title: Width
+          type: number
+        length:
+          title: Length
+          type: number
+        height:
+          title: Height
+          type: number
+        material:
+          title: Material
+          type: string
+        infill:
+          title: Infill
+          type: string
+        real_weight:
+          title: Real Weight
+          type: string
+      required:
+      - description
+      title: Body_create_order_create_order_post
+      type: object
+    Body_update_status_admin_update_status__order_id__post:
+      properties:
+        status:
+          title: Status
+          type: string
+      required:
+      - status
+      title: Body_update_status_admin_update_status__order_id__post
+      type: object
+    Body_login_login_post:
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+        username:
+          title: Username
+          type: string
+      required:
+      - password
+      title: Body_login_login_post
+      type: object
+    Body_register_register_post:
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+      required:
+      - email
+      - password
+      title: Body_register_register_post
+      type: object
+    HTTPValidationError:
+      example:
+        detail:
+        - msg: msg
+          loc:
+          - Location_inner
+          - Location_inner
+          type: type
+        - msg: msg
+          loc:
+          - Location_inner
+          - Location_inner
+          type: type
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    ValidationError:
+      example:
+        msg: msg
+        loc:
+        - Location_inner
+        - Location_inner
+        type: type
+      properties:
+        loc:
+          items:
+            $ref: "#/components/schemas/Location_inner"
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+    Location_inner:
+      anyOf:
+      - type: string
+      - type: integer
+

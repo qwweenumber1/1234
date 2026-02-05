@@ -11,3 +11,6 @@ httpx
 pytest
 pytest-asyncio
 python-dotenv
+jinja2
+aiofiles
+bcrypt
