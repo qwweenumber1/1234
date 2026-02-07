@@ -15,6 +15,9 @@
         rel="stylesheet">
     <link rel="icon" href="/static/favicon.ico">
 
+    <script src="/static/js/router.js" defer></script>
+    {% block extra_head %}{% endblock %}
+
     {% block extra_css %}{% endblock %}
 
     <style>
@@ -207,15 +210,17 @@
         </nav>
         <script>
             function handleAuth() {
-                const token = getCookie("access_token");
+                const token = getCookie("logged_in");
                 const authLink = document.getElementById("authLink");
-                if (token) {
+                if (token === "true") {
                     authLink.innerText = "Вихід";
                     authLink.href = "/logout";
                     authLink.onclick = async (e) => {
                         e.preventDefault();
                         await fetch("/logout", { method: "POST" });
-                        window.location.reload();
+                        if (window.appRouter) window.appRouter.navigateTo("/");
+                        else window.location.href = "/";
+                        setTimeout(() => window.location.reload(), 100);
                     };
                     authLink.removeAttribute("data-link");
                 } else {
@@ -233,8 +238,8 @@
             }
 
             function handleOrdersClick() {
-                const token = getCookie("access_token");
-                const target = token ? "/orders_page" : "/login_page";
+                const token = getCookie("logged_in");
+                const target = token === "true" ? "/orders_page" : "/login_page";
                 if (window.appRouter) window.appRouter.navigateTo(target);
                 else window.location.href = target;
             }
@@ -243,9 +248,11 @@
     {% endif %}
 
     <!-- SPA-CSS-META: {% block css_files %}{% endblock %} -->
-    <main id="main-content">
+
+    {% if not is_spa %}<main id="main-content">{% endif %}
         {% block content %}{% endblock %}
-    </main>
+        {% block scripts %}{% endblock %}
+        {% if not is_spa %}</main>{% endif %}
 
     {% if not is_spa %}
     <footer class="footer">
@@ -258,8 +265,12 @@
                 <div class="footer-socials">
                     <img src="/static/icons/facebook.svg" alt="Facebook">
                     <img src="/static/icons/instagram.svg" alt="Instagram">
-                    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank"><img
-                            src="/static/icons/youtube.svg" alt="YouTube"></a>
+                    <a href="https://wa.me/380662004790" target="_blank" title="WhatsApp">
+                        <img src="/static/icons/whatsapp_color.png" alt="WhatsApp" style="width: 24px;">
+                    </a>
+                    <a href="https://t.me/+380662004790" target="_blank" title="Telegram">
+                        <img src="/static/icons/telegram_color.png" alt="Telegram" style="width: 24px;">
+                    </a>
                 </div>
             </div>
             <div>
@@ -297,7 +308,6 @@
     </div>
     {% endif %}
 
-    <script src="/static/js/router.js?v=2"></script>
     <script>
         function toggleChat() {
             const chatWindow = document.getElementById("aiChatWindow");
@@ -333,7 +343,6 @@
 
         document.addEventListener('DOMContentLoaded', handleAuth);
     </script>
-    {% block scripts %}{% endblock %}
 </body>
 
 </html>

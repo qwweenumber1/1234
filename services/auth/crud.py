@@ -1,13 +1,19 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 from sqlalchemy.orm import Session
 from .models import User
 from .security import hash_password
 
 
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    """Return a user by email or None if not found."""
-    return db.query(User).filter(User.email == email).first()
+def get_user_by_email(db: Session, identifier: Union[str, int]) -> Optional[User]:
+    """Return a user by email (str) or ID (int/str digits)."""
+    if isinstance(identifier, int):
+        return db.query(User).filter(User.id == identifier).first()
+    
+    if isinstance(identifier, str) and identifier.isdigit():
+        return db.query(User).filter(User.id == int(identifier)).first()
+                                                                                                                                                        
+    return db.query(User).filter(User.email == identifier).first()
 
 
 def create_user(db: Session, email: str, hashed_password: str, verification_token: str = None) -> User:

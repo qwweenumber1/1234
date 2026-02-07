@@ -7,19 +7,22 @@ import time
 import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import logging
+
 from .database import engine, SessionLocal, get_db
-# Base.metadata.create_all(bind=engine) # Should be in main or startup
 from .models import Base, Notification
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Notification Service")
 
-# def get_db() already imported from .database
-
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "notification"}
+
+# Setup Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("NotificationService")
 
 # --- SMTP Config ---
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -108,9 +111,10 @@ def build_themed_email(title, greeting, message, action_url=None, action_text=No
 
 def send_html_email(to_email: str, subject: str, html_body: str):
     if cb.is_open():
-        print("SMTP Circuit Breaker is OPEN. Skipping email.")
+        logger.warning("SMTP Circuit Breaker is OPEN. Skipping email.")
         return False
     try:
+        logger.info(f"Attempting to send email to {to_email} | Subject: {subject}")
         msg = MIMEMultipart()
         msg['From'] = SMTP_USER
         msg['To'] = to_email
@@ -122,9 +126,10 @@ def send_html_email(to_email: str, subject: str, html_body: str):
         server.send_message(msg)
         server.quit()
         cb.record_success()
+        logger.info(f"Email sent successfully to {to_email}")
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"Error sending email: {e}")
         cb.record_failure()
         return False
 

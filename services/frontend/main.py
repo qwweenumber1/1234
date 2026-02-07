@@ -15,9 +15,13 @@ app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static"))
 
 templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR, "templates"))
 
+import logging
+logger = logging.getLogger("Frontend")
+
 def get_html(name: str, request: Request):
     # Check if the request is an AJAX request (for SPA)
     is_spa = request.headers.get("X-SPA") == "true" or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    logger.info(f"Rendering {name} | is_spa: {is_spa} | path: {request.url.path}")
     response = templates.TemplateResponse(name, {"request": request, "is_spa": is_spa})
     response.headers["Vary"] = "X-SPA, X-Requested-With"
     return response

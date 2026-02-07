@@ -7,7 +7,7 @@ openApiGenerate {
     generatorName.set("java")
     library.set("okhttp-gson")
 
-    inputSpec.set("C:\\ggg\\openapi.yaml")
+    inputSpec.set("C:\\Users\\home\\Downloads\\openapi(1).yaml")
     outputDir.set("$rootDir/openApi")
 
     apiPackage.set("org.openapitools.client.api")
@@ -67,8 +67,6 @@ dependencies {
     implementation project(":openApi")
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation "com.google.code.gson:gson:2.11.0"
-    implementation "org.apache.httpcomponents:httpclient:4.5.13"
-    implementation "org.apache.httpcomponents:httpmime:4.5.13"
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

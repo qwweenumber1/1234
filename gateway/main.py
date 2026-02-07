@@ -7,8 +7,155 @@ from fastapi.templating import Jinja2Templates
 import httpx
 import os
 from datetime import datetime
+import asyncio
+import logging
+
+# --- User configuration ---
+server = '127.0.0.1'
+port = 8010
+
+# Setup Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("Gateway")
+
+
+class RequestCompiler:
+    def validate_request_format(self, data: any) -> bool:
+        # Check if Format is valid.
+        if data is None: return True
+        if isinstance(data, (int, str, float, bool)): return True
+        if isinstance(data, (dict, list)): return True
+        
+        # Handle Starlette/FastAPI specific data types
+        try:
+            from starlette.datastructures import FormData
+            if isinstance(data, FormData): return True
+        except ImportError:
+            pass
+            
+        return False
+
+    def compile_request(self, data: any) -> any:
+        if self.validate_request_format(data):
+            return data
+        return None
+
+    def validate_response_format(self, data: any) -> bool:
+        # data is httpx.Response object
+        if hasattr(data, 'status_code'):
+            # Simple check: Is it a valid HTTP response?
+            # User mentioned "invalid format... return error or None"
+            # We can check content-type or just status
+            return True
+        return False
+
+    def compile_response(self, data: any) -> any:
+        # Validate or Compile response
+        return data
+
+compiler = RequestCompiler()
+
+class ConnectionKeeper:
+    def __init__(self):
+        self.working = True
+        
+    async def start(self):
+        self.working = True
+        asyncio.create_task(self._ping_loop())
+        logger.info(f"ConnectionKeeper started for {server}:{port}")
+
+    async def stop(self):
+        self.working = False
+        logger.info("ConnectionKeeper stopped")
+
+    async def _ping_loop(self):
+        logger.info("Starting ping loop")
+        while self.working:
+            try:
+                await self.ping()
+            except Exception as e:
+                logger.error(f"Error in ping loop: {e}")
+            await asyncio.sleep(5)
+
+    async def ping(self):
+        try:
+            # Attempt to connect with a timeout
+            future = asyncio.open_connection(server, port)
+            reader, writer = await asyncio.wait_for(future, timeout=3.0)
+            
+            # Connection successful
+            # logger.info(f"Ping active: Connected to {server}:{port}")
+            
+            writer.close()
+            await writer.wait_closed()
+        except asyncio.TimeoutError:
+            logger.error(f"Ping timeout: Could not connect to {server}:{port} within 3s")
+        except Exception as e:
+            logger.error(f"Ping failed: {e}")
+
+connection_keeper = ConnectionKeeper()
+
+
+# Rate Limiter Logic
+class RateLimiter:
+    def __init__(self):
+        self.ip_stats = {}  # {ip: {'reqs': [timestamps], 'blocked_until': timestamp}}
+
+    def check_request(self, ip: str) -> bool:
+        now = datetime.now().timestamp()
+        
+        if ip not in self.ip_stats:
+            self.ip_stats[ip] = {'reqs': [], 'blocked_until': 0}
+        
+        stats = self.ip_stats[ip]
+        
+        # Check if blocked
+        if stats['blocked_until'] > now:
+            remaining = int(stats['blocked_until'] - now)
+            # logger.warning(f"IP {ip} is blocked for {remaining}s")
+            return False
+
+        # Clean old requests (older than 1s)
+        stats['reqs'] = [t for t in stats['reqs'] if now - t < 1.0]
+        
+        # Add new request
+        stats['reqs'].append(now)
+        
+        # Check rate
+        if len(stats['reqs']) > 20:  # Increased limit to 20 req/s
+            stats['blocked_until'] = now + 3600  # Block for 1 hour
+            logger.warning(f"IP {ip} blocked for 1 hour (Rate limit exceeded: {len(stats['reqs'])} req/s)")
+            return False
+            
+        return True
+
+limiter = RateLimiter()
 
 app = FastAPI(title="API Gateway")
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    # Exclude static files from rate limiting
+    if request.url.path.startswith("/static"):
+        return await call_next(request)
+
+    client_ip = request.client.host
+    if not limiter.check_request(client_ip):
+        return JSONResponse(
+            status_code=429, 
+            content={"detail": "Too many requests. You are blocked for 1 hour."}
+        )
+    response = await call_next(request)
+    return response
+
+
+@app.on_event("startup")
+async def startup_event():
+    await connection_keeper.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await connection_keeper.stop()
 
 app.mount("/uploaded_files", StaticFiles(directory="uploaded_files"), name="uploaded_files")
 
@@ -56,7 +203,13 @@ async def proxy_request(service: str, path: str, request: Request, method: str =
                         httpx_files[key] = val
                     else:
                         httpx_files[key] = val
-
+            
+            # --- Check 1: Validate Request Format (Before Sending) ---
+            # We validate 'data' or 'json' if present
+            if data and not compiler.validate_request_format(data):
+                logger.error(f"Invalid request format: {data}")
+                return JSONResponse({"detail": "Invalid request format"}, status_code=400)
+            
             resp = await client.request(
                 method, 
                 url, 
@@ -66,6 +219,14 @@ async def proxy_request(service: str, path: str, request: Request, method: str =
                 params=params,
                 headers={k: v for k, v in request.headers.items() if k.lower() not in ["host", "content-length", "content-type"]}
             )
+
+            # --- Check 2: Validate Response Format (Before Receiving/Returning) ---
+            # We assume we expect JSON or success status
+            if not compiler.validate_response_format(resp):
+                 logger.error(f"Invalid response format from {url}")
+                 # User asked to return Error or None (represented here as error response)
+                 return JSONResponse({"detail": "Invalid response from upstream service"}, status_code=502)
+
             return resp
         except httpx.RequestError as e:
             return JSONResponse({"detail": f"Request error: {str(e)}"}, status_code=503)
@@ -204,6 +365,7 @@ async def register(request: Request, email: str = Form(...), password: str = For
 
     response = RedirectResponse("/registration_success", status_code=303)
     response.set_cookie("access_token", token, httponly=True, samesite="lax")
+    response.set_cookie("logged_in", "true", httponly=False, samesite="lax")
     if refresh_token:
         response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="lax", max_age=7*24*3600)
     return response
@@ -265,10 +427,13 @@ async def login(request: Request, password: str = Form(...), email: str = Form(N
     # If client explicitly asks for JSON, or doesn't explicitly ask for HTML
     accept_header = request.headers.get("accept", "").lower()
     if "application/json" in accept_header or "text/html" not in accept_header:
+        # We don't set cookies here as it's an API call, 
+        # but for SPA we might need them if the client doesn't handle tokens manually
         return JSONResponse(auth_data)
 
     response = RedirectResponse("/orders_page", status_code=303)
     response.set_cookie("access_token", token, httponly=True, samesite="lax")
+    response.set_cookie("logged_in", "true", httponly=False, samesite="lax")
     if refresh_token:
         response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="lax", max_age=7*24*3600)
     return response
@@ -320,6 +485,7 @@ async def refresh(request: Request):
     
     response = JSONResponse({"status": "refreshed"})
     response.set_cookie("access_token", access_token, httponly=True, samesite="lax")
+    response.set_cookie("logged_in", "true", httponly=False, samesite="lax")
     response.set_cookie("refresh_token", refresh_token, httponly=True, samesite="lax", max_age=7*24*3600)
     return response
 
@@ -328,6 +494,7 @@ async def logout():
     response = JSONResponse({"message": "Logged out"})
     response.delete_cookie("access_token", path="/", domain=None)
     response.delete_cookie("refresh_token", path="/", domain=None)
+    response.delete_cookie("logged_in", path="/", domain=None)
     return response
 
 # ================= ORDERS =================
@@ -405,7 +572,9 @@ async def admin_dashboard(request: Request):
 @app.post("/admin/update_status/{order_id}")
 async def update_status(order_id: int, request: Request):
     form = await request.form()
+    print(f"[Gateway] Forwarding status update for {order_id}: {dict(form)}")
     resp = await proxy_request("admin", f"/update_status/{order_id}", request, method="POST", data=form)
+    print(f"[Gateway] Admin response for {order_id}: {resp.status_code}")
     if isinstance(resp, JSONResponse): return resp
     return JSONResponse(resp.json(), status_code=resp.status_code)
 
@@ -414,3 +583,14 @@ async def admin_delete_order(order_id: int, request: Request):
     resp = await proxy_request("admin", f"/delete_order/{order_id}", request, method="DELETE")
     if isinstance(resp, JSONResponse): return resp
     return JSONResponse(resp.json(), status_code=resp.status_code)
+
+# ================= CATCH-ALL FOR SPA =================
+# Moved to end to avoid shadowing API routes like /me, /orders, /calculate_price
+@app.get("/{path:path}", response_class=HTMLResponse)
+async def catch_all(path: str, request: Request):
+    # Proxy everything else to frontend (e.g. /intro, /about)
+    resp = await proxy_request("frontend", f"/{path}", request)
+    if isinstance(resp, JSONResponse): return resp
+    response = HTMLResponse(content=resp.text, status_code=resp.status_code)
+    response.headers["Vary"] = "X-SPA, X-Requested-With"
+    return response

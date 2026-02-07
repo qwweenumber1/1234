@@ -94,7 +94,7 @@ class AppRouter {
      * Dynamically loads/unloads page-specific CSS files
      */
     updateDynamicStyles(html) {
-        console.log('[Router] updateDynamicStyles called');
+        console.log('[Router] updateDynamicStyles called. HTML length:', html.length);
 
         // Remove previously loaded dynamic stylesheets
         const oldDynamicStyles = document.querySelectorAll('link[data-dynamic-css]');
@@ -102,8 +102,8 @@ class AppRouter {
         oldDynamicStyles.forEach(link => link.remove());
 
         // Extract CSS files from SPA-CSS-META comment
-        const metaMatch = html.match(/<!-- SPA-CSS-META: (.*?) -->/);
-        console.log('[Router] SPA-CSS-META match:', metaMatch);
+        const metaMatch = html.match(/<!-- SPA-CSS-META:\s*(.*?)\s*-->/);
+        console.log('[Router] SPA-CSS-META raw match:', metaMatch ? metaMatch[0] : 'None');
 
         if (metaMatch && metaMatch[1].trim()) {
             const cssFiles = metaMatch[1].trim().split(/\s+/);
@@ -112,8 +112,7 @@ class AppRouter {
             cssFiles.forEach(href => {
                 if (!href) return;
 
-                console.log('[Router] Loading CSS:', href);
-                // Create and append new link element
+                console.log('[Router] Injecting CSS:', href);
                 const linkElement = document.createElement('link');
                 linkElement.rel = 'stylesheet';
                 linkElement.href = href;
@@ -121,7 +120,7 @@ class AppRouter {
                 document.head.appendChild(linkElement);
             });
         } else {
-            console.log('[Router] No CSS files to load for this page');
+            console.log('[Router] No page-specific CSS found for this route');
         }
     }
 

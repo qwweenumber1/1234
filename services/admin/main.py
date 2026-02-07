@@ -32,7 +32,12 @@ def admin_panel(email: str = "", db: Session = Depends(get_db)):
 
 @app.post("/update_status/{order_id}")
 async def update_status(background_tasks: BackgroundTasks, order_id: int, status: str = Form(...), db: Session = Depends(get_db)):
+    print(f"DEBUG: Updating order {order_id} to status {status}")
     order = crud.update_order_status(db, order_id, status)
+    if order:
+        print(f"DEBUG: Order {order_id} found and updated")
+    else:
+        print(f"DEBUG: Order {order_id} NOT FOUND")
     if order and order.user_email:
         # Trigger notification via Notification Service
         NOTIFICATION_URL = os.getenv("NOTIFICATION_SERVICE_URL", "http://127.0.0.1:8004") + "/send-status-update"

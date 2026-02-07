@@ -3,9 +3,50 @@ import subprocess
 import sys
 import time
 from dotenv import load_dotenv
+import logging
+import asyncio
 
 # Load environment variables from .env file
 load_dotenv()
+
+# --- User configuration ---
+server = '127.0.0.1'
+port = 8010
+
+# Setup Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("Runner")
+
+class ServerMonitor:
+    def __init__(self):
+        self.working = True
+    
+    async def _ping_loop(self):
+        logger.info("Starting ping loop")
+        while self.working:
+            try:
+                await self.ping()
+            except Exception as e:
+                logger.error(f"Error in ping loop: {e}")
+            await asyncio.sleep(5)
+
+    async def ping(self):
+        try:
+            future = asyncio.open_connection(server, port)
+            reader, writer = await asyncio.wait_for(future, timeout=3.0)
+            
+            # Connection successful
+            # logger.info(f"Ping active: Connected to {server}:{port}")
+            
+            writer.close()
+            await writer.wait_closed()
+        except asyncio.TimeoutError:
+            logger.error(f"Ping timeout: Could not connect to {server}:{port} within 3s")
+        except Exception as e:
+            logger.error(f"Ping failed: {e}")
+
+monitor = ServerMonitor()
+
 
 # Configuration: (name, app_module, port)
 SERVICES = [
@@ -15,7 +56,7 @@ SERVICES = [
     ("Admin", "services.admin.main:app", 8006),
     ("AI", "services.ai.main:app", 8007),
     ("Frontend", "services.frontend.main:app", 8008),
-    ("Gateway", "gateway.main:app", 8000),
+    ("Gateway", "gateway.main:app", 8010),
 ]
 
 def run_services():

@@ -47,22 +47,23 @@
             background: #c82333;
         }
 
-        ul {
+        .admin-content ul {
             list-style: none;
             padding: 0;
         }
 
-        li {
+        .admin-content li {
             background: white;
             margin: 10px 0;
             padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
+            border: 1px solid #eee;
         }
 
         .order-info {
